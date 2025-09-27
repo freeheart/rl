@@ -1,0 +1,122 @@
+[
+  {
+    "name": "grammar_compilation_small_grammar",
+    "iterations": 100,
+    "total_time_nanos": 55120500,
+    "avg_time_nanos": 551205,
+    "min_time_nanos": 382000,
+    "max_time_nanos": 988700,
+    "throughput": 241289.53837501473,
+    "memory_usage": 0
+  },
+  {
+    "name": "grammar_compilation_large_grammar",
+    "iterations": 100,
+    "total_time_nanos": 1649228200,
+    "avg_time_nanos": 16492282,
+    "min_time_nanos": 13310800,
+    "max_time_nanos": 26452200,
+    "throughput": 2286766.6221084506,
+    "memory_usage": 0
+  },
+  {
+    "name": "grammar_compilation_medium_grammar",
+    "iterations": 100,
+    "total_time_nanos": 196291900,
+    "avg_time_nanos": 1962919,
+    "min_time_nanos": 1560200,
+    "max_time_nanos": 2964800,
+    "throughput": 3908974.338727171,
+    "memory_usage": 0
+  },
+  {
+    "name": "grammar_compilation_huge_grammar",
+    "iterations": 100,
+    "total_time_nanos": 8087251700,
+    "avg_time_nanos": 80872517,
+    "min_time_nanos": 68150200,
+    "max_time_nanos": 214660000,
+    "throughput": 2494221.862786835,
+    "memory_usage": 0
+  },
+  {
+    "name": "code_generation_small_grammar",
+    "iterations": 50,
+    "total_time_nanos": 15918100,
+    "avg_time_nanos": 318362,
+    "min_time_nanos": 219500,
+    "max_time_nanos": 588600,
+    "throughput": 36072144.288577154,
+    "memory_usage": 0
+  },
+  {
+    "name": "code_generation_large_grammar",
+    "iterations": 50,
+    "total_time_nanos": 15689900,
+    "avg_time_nanos": 313798,
+    "min_time_nanos": 221300,
+    "max_time_nanos": 526100,
+    "throughput": 36596791.56654918,
+    "memory_usage": 0
+  },
+  {
+    "name": "code_generation_medium_grammar",
+    "iterations": 50,
+    "total_time_nanos": 17541400,
+    "avg_time_nanos": 350828,
+    "min_time_nanos": 219600,
+    "max_time_nanos": 714500,
+    "throughput": 32733989.3053006,
+    "memory_usage": 0
+  },
+  {
+    "name": "code_generation_huge_grammar",
+    "iterations": 50,
+    "total_time_nanos": 15904700,
+    "avg_time_nanos": 318094,
+    "min_time_nanos": 231700,
+    "max_time_nanos": 497900,
+    "throughput": 36102535.72843248,
+    "memory_usage": 0
+  },
+  {
+    "name": "error_handling_type_1",
+    "iterations": 50,
+    "total_time_nanos": 21414200,
+    "avg_time_nanos": 428284,
+    "min_time_nanos": 346500,
+    "max_time_nanos": 987600,
+    "throughput": 93395.97089781547,
+    "memory_usage": 0
+  },
+  {
+    "name": "error_handling_type_2",
+    "iterations": 50,
+    "total_time_nanos": 24707000,
+    "avg_time_nanos": 494140,
+    "min_time_nanos": 343500,
+    "max_time_nanos": 768800,
+    "throughput": 87019.87291051119,
+    "memory_usage": 0
+  },
+  {
+    "name": "error_handling_type_3",
+    "iterations": 50,
+    "total_time_nanos": 26556000,
+    "avg_time_nanos": 531120,
+    "min_time_nanos": 339700,
+    "max_time_nanos": 800300,
+    "throughput": 80960.98810061756,
+    "memory_usage": 0
+  },
+  {
+    "name": "error_handling_type_4",
+    "iterations": 50,
+    "total_time_nanos": 29680400,
+    "avg_time_nanos": 593608,
+    "min_time_nanos": 359900,
+    "max_time_nanos": 931800,
+    "throughput": 72438.37684128246,
+    "memory_usage": 0
+  }
+]

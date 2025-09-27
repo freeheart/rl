@@ -1,0 +1,283 @@
+# 复杂CYPHER查询语句集
+# 用于测试CYPHER 25解析器功能
+
+## 1. 基础复杂查询
+
+# 多跳路径查询
+MATCH (a:Person)-[r1:KNOWS*1..3]-(b:Person)-[r2:WORKS_AT*1..2]-(c:Company)
+WHERE a.name = 'Alice' AND c.industry = 'Technology'
+RETURN a.name, b.name, c.name, length(r1) + length(r2) as total_hops
+ORDER BY total_hops;
+
+# 复杂条件查询
+MATCH (p:Person)-[r:KNOWS]->(friend:Person)
+WHERE p.age > 25 AND p.city = 'New York' AND friend.age BETWEEN 20 AND 30
+  AND (friend.education = 'PhD' OR friend.education = 'Master')
+  AND NOT (friend.name CONTAINS 'John')
+RETURN p.name, friend.name, friend.age, friend.education
+ORDER BY friend.age DESC;
+
+# 聚合查询
+MATCH (p:Person)-[:WORKS_AT]->(c:Company)
+WHERE c.industry = 'Technology'
+WITH c, collect(p) as employees
+WHERE size(employees) > 10
+RETURN c.name, size(employees) as employee_count, 
+       avg([emp IN employees | emp.age]) as avg_age,
+       max([emp IN employees | emp.salary]) as max_salary;
+
+## 2. 高级路径查询
+
+# 最短路径查询
+MATCH path = shortestPath((a:Person {name: 'Alice'})-[*]-(b:Person {name: 'Bob'}))
+WHERE length(path) > 0
+RETURN path, length(path) as path_length;
+
+# 所有最短路径
+MATCH path = allShortestPaths((a:Person {name: 'Alice'})-[*]-(b:Person {name: 'Bob'}))
+RETURN path, length(path) as path_length
+ORDER BY path_length;
+
+# 变长路径查询
+MATCH (a:Person)-[r:KNOWS*2..5]-(b:Person)
+WHERE a.name = 'Alice' AND b.name <> 'Alice'
+WITH a, b, r, length(r) as hop_count
+WHERE hop_count <= 3
+RETURN a.name, b.name, hop_count, [rel IN r | rel.since] as relationship_dates;
+
+## 3. 复杂模式匹配
+
+# 三角形模式
+MATCH (a:Person)-[:KNOWS]->(b:Person)-[:KNOWS]->(c:Person)-[:KNOWS]->(a)
+WHERE a.age > 25 AND b.age > 25 AND c.age > 25
+RETURN a.name, b.name, c.name, 
+       (a.age + b.age + c.age) as total_age;
+
+# 星形模式
+MATCH (center:Person)-[:KNOWS]->(peripheral:Person)
+WHERE center.name = 'Alice'
+WITH center, collect(peripheral) as friends
+WHERE size(friends) >= 3
+RETURN center.name, size(friends) as friend_count,
+       [friend IN friends | friend.name] as friend_names;
+
+# 复杂嵌套模式
+MATCH (p:Person)-[:KNOWS]->(friend:Person)-[:WORKS_AT]->(company:Company)
+WHERE p.city = 'New York' AND company.industry = 'Technology'
+WITH p, collect(DISTINCT company) as companies
+WHERE size(companies) > 1
+RETURN p.name, [c IN companies | c.name] as company_names;
+
+## 4. 时间序列查询
+
+# 时间范围查询
+MATCH (p:Person)-[r:KNOWS]->(friend:Person)
+WHERE r.since >= date('2020-01-01') AND r.since <= date('2023-12-31')
+  AND p.birth_date >= date('1990-01-01')
+RETURN p.name, friend.name, r.since
+ORDER BY r.since DESC;
+
+# 时间窗口聚合
+MATCH (p:Person)-[r:WORKS_AT]->(c:Company)
+WHERE r.start_date >= date('2020-01-01') AND r.start_date <= date('2023-12-31')
+WITH c, collect({person: p, start_date: r.start_date}) as employees
+WHERE size(employees) > 5
+RETURN c.name, size(employees) as employee_count,
+       min([emp IN employees | emp.start_date]) as earliest_start,
+       max([emp IN employees | emp.start_date]) as latest_start;
+
+## 5. 复杂数据操作
+
+# 复杂CREATE操作
+CREATE (p:Person {
+  name: 'John Doe',
+  age: 30,
+  email: 'john@example.com',
+  address: {
+    street: '123 Main St',
+    city: 'New York',
+    state: 'NY',
+    zip: '10001'
+  },
+  skills: ['Java', 'Python', 'GraphQL'],
+  metadata: {
+    created_at: datetime(),
+    version: 1.0,
+    tags: ['developer', 'senior']
+  }
+});
+
+# 复杂MERGE操作
+MERGE (p:Person {email: 'jane@example.com'})
+ON CREATE SET 
+  p.name = 'Jane Smith',
+  p.age = 28,
+  p.created_at = datetime(),
+  p.version = 1
+ON MATCH SET 
+  p.last_updated = datetime(),
+  p.version = p.version + 1;
+
+# 复杂SET操作
+MATCH (p:Person)-[r:KNOWS]->(friend:Person)
+WHERE p.name = 'Alice'
+SET r.strength = CASE 
+  WHEN friend.age < 25 THEN 0.8
+  WHEN friend.age BETWEEN 25 AND 35 THEN 0.9
+  ELSE 0.7
+END,
+r.last_interaction = datetime(),
+p.friend_count = size([(p)-[:KNOWS]->(f) | f]);
+
+## 6. 复杂DELETE操作
+
+# 条件删除
+MATCH (p:Person)-[r:KNOWS]->(friend:Person)
+WHERE p.name = 'Alice' AND r.strength < 0.5
+DELETE r;
+
+# 级联删除
+MATCH (p:Person {name: 'Bob'})
+OPTIONAL MATCH (p)-[r:KNOWS]->(friend:Person)
+DETACH DELETE p;
+
+## 7. 复杂UNION查询
+
+# UNION查询
+MATCH (p:Person)-[:KNOWS]->(friend:Person)
+WHERE p.age > 25
+RETURN p.name as name, 'person' as type, p.age as age
+UNION
+MATCH (c:Company)
+WHERE c.employee_count > 100
+RETURN c.name as name, 'company' as type, c.employee_count as age;
+
+## 8. 复杂CALL过程
+
+# 调用APOC过程
+CALL apoc.path.subgraphAll(
+  (p:Person {name: 'Alice'}),
+  {
+    relationshipFilter: 'KNOWS|WORKS_AT',
+    labelFilter: 'Person|Company',
+    maxLevel: 3
+  }
+) YIELD nodes, relationships
+RETURN nodes, relationships;
+
+# 调用图算法
+CALL gds.pageRank.stream('myGraph')
+YIELD nodeId, score
+MATCH (n) WHERE id(n) = nodeId
+RETURN n.name, score
+ORDER BY score DESC
+LIMIT 10;
+
+## 9. 复杂LOAD CSV操作
+
+# 复杂CSV加载
+LOAD CSV WITH HEADERS FROM 'file:///data.csv' AS row
+FIELDTERMINATOR '|'
+WHERE row.name IS NOT NULL AND row.email CONTAINS '@'
+CREATE (p:Person {
+  name: row.name,
+  email: row.email,
+  age: toInteger(row.age),
+  city: row.city,
+  metadata: {
+    source: 'csv',
+    imported_at: datetime(),
+    row_number: linenumber()
+  }
+});
+
+## 10. 复杂FOREACH操作
+
+# 复杂FOREACH
+MATCH (p:Person)
+WHERE p.age > 25
+FOREACH (i IN range(0, 10) |
+  CREATE (p)-[:HAS_SKILL]->(s:Skill {
+    name: 'Skill' + toString(i),
+    level: i * 10,
+    acquired_date: date() + duration({days: i})
+  })
+);
+
+## 11. 复杂WITH子句
+
+# 复杂WITH查询
+MATCH (p:Person)-[:KNOWS]->(friend:Person)
+WHERE p.age > 25
+WITH p, collect(friend) as friends, count(friend) as friend_count
+WHERE friend_count > 5
+WITH p, friends, friend_count,
+     [f IN friends WHERE f.age > 30 | f] as older_friends
+WHERE size(older_friends) > 2
+RETURN p.name, friend_count, size(older_friends) as older_friend_count;
+
+## 12. 复杂CASE语句
+
+# 复杂CASE查询
+MATCH (p:Person)
+RETURN p.name,
+  CASE 
+    WHEN p.age < 18 THEN 'Minor'
+    WHEN p.age BETWEEN 18 AND 65 THEN 'Adult'
+    ELSE 'Senior'
+  END as age_group,
+  CASE p.education
+    WHEN 'PhD' THEN 4
+    WHEN 'Master' THEN 3
+    WHEN 'Bachelor' THEN 2
+    ELSE 1
+  END as education_level;
+
+## 13. 复杂字符串操作
+
+# 字符串函数查询
+MATCH (p:Person)
+WHERE p.name STARTS WITH 'A' AND p.name ENDS WITH 'n'
+RETURN p.name,
+  substring(p.name, 0, 3) as first_three,
+  replace(p.name, ' ', '_') as name_with_underscores,
+  split(p.name, ' ') as name_parts,
+  size(p.name) as name_length;
+
+## 14. 复杂数学运算
+
+# 数学函数查询
+MATCH (p:Person)-[:WORKS_AT]->(c:Company)
+WHERE c.industry = 'Technology'
+RETURN c.name,
+  avg(p.salary) as avg_salary,
+  stdDev(p.salary) as salary_stddev,
+  percentileCont(p.salary, 0.5) as median_salary,
+  percentileCont(p.salary, 0.95) as p95_salary;
+
+## 15. 复杂空间查询
+
+# 空间查询
+MATCH (p:Person)
+WHERE point.distance(p.location, point({latitude: 40.7128, longitude: -74.0060})) < 1000
+RETURN p.name, p.location,
+  point.distance(p.location, point({latitude: 40.7128, longitude: -74.0060})) as distance;
+
+## 16. 复杂索引查询
+
+# 使用索引提示
+MATCH (p:Person)
+USING INDEX p:Person(name)
+WHERE p.name = 'Alice'
+RETURN p;
+
+## 17. 复杂EXPLAIN和PROFILE
+
+# 查询计划分析
+EXPLAIN MATCH (p:Person)-[:KNOWS*1..3]-(friend:Person)
+WHERE p.age > 25
+RETURN p, friend;
+
+PROFILE MATCH (p:Person)-[:KNOWS*1..3]-(friend:Person)
+WHERE p.age > 25
+RETURN p, friend;

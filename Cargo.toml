@@ -1,0 +1,64 @@
+[package]
+name = "rl"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jinzhu.Zhang <freeheart1977@example.com>"]
+license = "MIT"
+description = "Right wheeL - 高性能Rust解析器生成器"
+repository = "https://github.com/freeheart1977/rl"
+
+[dependencies]
+# 核心依赖
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+anyhow = "1.0"
+
+# 并行处理
+rayon = "1.8"
+crossbeam = "0.8"
+
+# 缓存和性能
+lru = "0.12"
+dashmap = "5.5"
+
+# 字符串处理
+regex = "1.10"
+lazy_static = "1.4"
+
+# 文件处理
+walkdir = "2.4"
+
+# 模板引擎
+handlebars = "4.5"
+
+# 代码格式化
+prettyplease = "0.2"
+
+# 性能监控
+criterion = { version = "0.5", optional = true }
+
+# AI和知识图谱增强
+tokio = { version = "1.0", features = ["full"] }
+async-trait = "0.1"
+parking_lot = "0.12"
+petgraph = "0.6"
+num_cpus = "1.0"
+
+# CLI工具依赖
+clap = { version = "4.0", features = ["derive"] }
+colored = "2.0"
+env_logger = "0.10"
+log = "0.4"
+
+[dev-dependencies]
+criterion = "0.5"
+tempfile = "3.8"
+
+[features]
+default = []
+bench = ["criterion"]
+
+# [[bench]]
+# name = "parser_bench"
+# harness = false

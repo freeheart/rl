@@ -1,0 +1,343 @@
+# RL解析器生成器 Kubernetes部署配置
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rl-parser
+  labels:
+    name: rl-parser
+    app: rl-parser
+
+---
+# ConfigMap配置
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rl-config
+  namespace: rl-parser
+data:
+  rl-config.toml: |
+    [general]
+    name = "RL Parser Generator"
+    version = "0.1.0"
+    
+    [parser]
+    grammar_files = [
+      "examples/cypher25_grammar.rl",
+      "examples/gql2024_grammar.rl",
+      "examples/sql_grammar.rl"
+    ]
+    optimization_level = "high"
+    zero_copy_enabled = true
+    
+    [planner]
+    algorithm = "cost_based"
+    parallelism = 4
+    
+    [executor]
+    execution_mode = "parallel"
+    memory_limit = "1GB"
+    
+    [ai_enhancement]
+    enabled = true
+    
+    [knowledge_graph]
+    enabled = true
+    graph_format = "neo4j"
+    
+    [performance]
+    zero_copy_enabled = true
+    memory_pool_size = "256MB"
+    thread_pool_size = 8
+    
+    [monitoring]
+    metrics_enabled = true
+    prometheus_enabled = true
+    prometheus_port = 9090
+
+---
+# Secret配置
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rl-secrets
+  namespace: rl-parser
+type: Opaque
+data:
+  # Base64编码的密钥
+  api-key: eW91ci1hcGkta2V5  # your-api-key
+  database-url: cG9zdGdyZXNxbDovL3VzZXI6cGFzc3dvcmRAbG9jYWxob3N0L3Js  # postgresql://user:password@localhost/rl
+
+---
+# Deployment配置
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rl-parser
+  namespace: rl-parser
+  labels:
+    app: rl-parser
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rl-parser
+  template:
+    metadata:
+      labels:
+        app: rl-parser
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: rl-parser
+        image: rl-parser:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: RUST_LOG
+          value: "info"
+        - name: RUST_BACKTRACE
+          value: "1"
+        - name: RL_CONFIG_PATH
+          value: "/app/config.toml"
+        - name: RL_GRAMMAR_PATH
+          value: "/app/examples"
+        - name: RL_DATA_PATH
+          value: "/app/data"
+        - name: RL_LOGS_PATH
+          value: "/app/logs"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config.toml
+          subPath: rl-config.toml
+        - name: data-volume
+          mountPath: /app/data
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: knowledge-graphs-volume
+          mountPath: /app/knowledge_graphs
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 10
+      volumes:
+      - name: config-volume
+        configMap:
+          name: rl-config
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: rl-data-pvc
+      - name: logs-volume
+        persistentVolumeClaim:
+          claimName: rl-logs-pvc
+      - name: knowledge-graphs-volume
+        persistentVolumeClaim:
+          claimName: rl-kg-pvc
+
+---
+# Service配置
+apiVersion: v1
+kind: Service
+metadata:
+  name: rl-parser-service
+  namespace: rl-parser
+  labels:
+    app: rl-parser
+spec:
+  selector:
+    app: rl-parser
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  type: ClusterIP
+
+---
+# Ingress配置
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rl-parser-ingress
+  namespace: rl-parser
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: rl-parser.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rl-parser-service
+            port:
+              number: 8080
+
+---
+# PersistentVolumeClaim配置
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rl-data-pvc
+  namespace: rl-parser
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rl-logs-pvc
+  namespace: rl-parser
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rl-kg-pvc
+  namespace: rl-parser
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard
+
+---
+# HorizontalPodAutoscaler配置
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: rl-parser-hpa
+  namespace: rl-parser
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: rl-parser
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# ServiceMonitor配置（用于Prometheus监控）
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rl-parser-monitor
+  namespace: rl-parser
+  labels:
+    app: rl-parser
+spec:
+  selector:
+    matchLabels:
+      app: rl-parser
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+# NetworkPolicy配置
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: rl-parser-netpol
+  namespace: rl-parser
+spec:
+  podSelector:
+    matchLabels:
+      app: rl-parser
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: rl-parser
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: rl-parser
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

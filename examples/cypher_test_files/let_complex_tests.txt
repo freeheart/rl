@@ -1,0 +1,104 @@
+# LET复杂多层赋值测试文件
+# 包含100+个LET表达式的复杂多层赋值和取值语句
+
+# 1. 基础LET赋值
+MATCH (p:Product) LET price = p.price RETURN p.name, price;
+MATCH (p:Product) LET isExpensive = p.price > 500 RETURN p.name, isExpensive;
+MATCH (p:Product) LET discount = p.price * 0.1 RETURN p.name, p.price, discount;
+
+# 2. 简单LET计算
+MATCH (p:Product) LET totalValue = p.price * p.quantity RETURN p.name, totalValue;
+MATCH (p:Product) LET profit = p.price - p.cost RETURN p.name, profit;
+MATCH (p:Product) LET profitMargin = (p.price - p.cost) / p.price * 100 RETURN p.name, profitMargin;
+
+# 3. LET与CASE结合
+MATCH (p:Product) LET category = CASE WHEN p.price > 1000 THEN 'Luxury' WHEN p.price > 500 THEN 'Premium' ELSE 'Standard' END RETURN p.name, category;
+MATCH (p:Product) LET status = CASE WHEN p.stock > 100 THEN 'In Stock' WHEN p.stock > 0 THEN 'Low Stock' ELSE 'Out of Stock' END RETURN p.name, status;
+
+# 4. LET多层赋值
+MATCH (p:Product) LET basePrice = p.price LET tax = basePrice * 0.1 LET totalPrice = basePrice + tax RETURN p.name, totalPrice;
+MATCH (p:Product) LET profit = p.price - p.cost LET profitMargin = profit / p.price * 100 LET rating = CASE WHEN profitMargin > 50 THEN 'Excellent' WHEN profitMargin > 25 THEN 'Good' ELSE 'Poor' END RETURN p.name, rating;
+
+# 5. LET与字符串操作
+MATCH (p:Product) LET shortName = substring(p.name, 0, 10) LET upperName = toUpper(shortName) RETURN p.name, upperName;
+MATCH (p:Product) LET nameLength = length(p.name) LET nameCategory = CASE WHEN nameLength > 20 THEN 'Long' WHEN nameLength > 10 THEN 'Medium' ELSE 'Short' END RETURN p.name, nameCategory;
+
+# 6. LET与日期操作
+MATCH (p:Product) LET daysSinceCreated = duration.between(p.createdDate, date()).days LET ageCategory = CASE WHEN daysSinceCreated > 365 THEN 'Old' WHEN daysSinceCreated > 90 THEN 'Recent' ELSE 'New' END RETURN p.name, ageCategory;
+
+# 7. LET与列表操作
+MATCH (p:Product) LET tagCount = size(p.tags) LET hasManyTags = tagCount > 5 LET tagCategory = CASE WHEN tagCount > 10 THEN 'Heavy' WHEN tagCount > 5 THEN 'Medium' ELSE 'Light' END RETURN p.name, tagCategory;
+
+# 8. LET与聚合函数
+MATCH (p:Product) LET avgPrice = avg(p.price) LET isAboveAverage = p.price > avgPrice LET priceCategory = CASE WHEN p.price > avgPrice * 1.5 THEN 'Expensive' WHEN p.price < avgPrice * 0.5 THEN 'Cheap' ELSE 'Average' END RETURN p.name, priceCategory;
+
+# 9. LET与关系查询
+MATCH (p:Product)-[:BELONGS_TO]->(c:Category) LET categoryName = c.name LET productWithCategory = p.name + ' (' + categoryName + ')' RETURN productWithCategory;
+MATCH (p:Product)-[:REVIEWED_BY]->(r:Review) LET avgRating = avg(r.rating) LET ratingCategory = CASE WHEN avgRating >= 4.5 THEN 'Excellent' WHEN avgRating >= 3.5 THEN 'Good' WHEN avgRating >= 2.5 THEN 'Average' ELSE 'Poor' END RETURN p.name, ratingCategory;
+
+# 10. LET与复杂条件
+MATCH (p:Product) LET isPopular = p.views > 1000 AND p.likes > 100 LET isTrending = p.views > 5000 OR p.likes > 500 LET popularityScore = CASE WHEN isTrending THEN 'Trending' WHEN isPopular THEN 'Popular' ELSE 'Regular' END RETURN p.name, popularityScore;
+
+# 11. LET与数学函数
+MATCH (p:Product) LET priceSquared = p.price * p.price LET priceRoot = sqrt(priceSquared) LET priceLog = log(p.price) RETURN p.name, priceRoot, priceLog;
+MATCH (p:Product) LET priceCeil = ceil(p.price) LET priceFloor = floor(p.price) LET priceRound = round(p.price) RETURN p.name, priceCeil, priceFloor, priceRound;
+
+# 12. LET与字符串函数
+MATCH (p:Product) LET nameWords = split(p.name, ' ') LET wordCount = size(nameWords) LET firstWord = nameWords[0] LET lastWord = nameWords[-1] RETURN p.name, firstWord, lastWord;
+MATCH (p:Product) LET nameReversed = reverse(p.name) LET nameLength = length(p.name) LET isPalindrome = p.name = nameReversed RETURN p.name, isPalindrome;
+
+# 13. LET与日期函数
+MATCH (p:Product) LET currentYear = date().year LET productYear = p.createdDate.year LET ageInYears = currentYear - productYear LET ageCategory = CASE WHEN ageInYears > 5 THEN 'Vintage' WHEN ageInYears > 2 THEN 'Mature' ELSE 'New' END RETURN p.name, ageCategory;
+
+# 14. LET与列表函数
+MATCH (p:Product) LET allTags = p.tags LET tagCount = size(allTags) LET firstTag = allTags[0] LET lastTag = allTags[-1] LET middleTags = allTags[1..-1] RETURN p.name, firstTag, lastTag, middleTags;
+MATCH (p:Product) LET sortedTags = p.tags LET uniqueTags = collect(DISTINCT p.tags) LET hasDuplicates = size(p.tags) <> size(uniqueTags) RETURN p.name, hasDuplicates;
+
+# 15. LET与复杂计算
+MATCH (p:Product) LET basePrice = p.price LET taxRate = 0.1 LET tax = basePrice * taxRate LET discount = CASE WHEN basePrice > 1000 THEN basePrice * 0.1 ELSE 0 END LET finalPrice = basePrice + tax - discount RETURN p.name, finalPrice;
+
+# 16. LET与嵌套CASE
+MATCH (p:Product) LET priceCategory = CASE WHEN p.price > 1000 THEN 'High' WHEN p.price > 500 THEN 'Medium' ELSE 'Low' END LET stockCategory = CASE WHEN p.stock > 100 THEN 'High' WHEN p.stock > 50 THEN 'Medium' ELSE 'Low' END LET priority = CASE WHEN priceCategory = 'High' AND stockCategory = 'Low' THEN 'Urgent' WHEN priceCategory = 'Medium' AND stockCategory = 'Low' THEN 'Important' ELSE 'Normal' END RETURN p.name, priority;
+
+# 17. LET与多表连接
+MATCH (p:Product)-[:BELONGS_TO]->(c:Category), (p)-[:SOLD_BY]->(s:Store) LET categoryName = c.name LET storeName = s.name LET productInfo = p.name + ' in ' + categoryName + ' at ' + storeName RETURN productInfo;
+MATCH (p:Product)-[:REVIEWED_BY]->(r:Review)-[:WRITTEN_BY]->(u:User) LET userName = u.name LET reviewRating = r.rating LET reviewText = r.text LET reviewSummary = userName + ' rated ' + p.name + ' ' + toString(reviewRating) + ' stars' RETURN reviewSummary;
+
+# 18. LET与时间计算
+MATCH (p:Product) LET daysSinceCreated = duration.between(p.createdDate, date()).days LET weeksSinceCreated = daysSinceCreated / 7 LET monthsSinceCreated = daysSinceCreated / 30 LET yearsSinceCreated = daysSinceCreated / 365 LET timeCategory = CASE WHEN yearsSinceCreated > 1 THEN 'Old' WHEN monthsSinceCreated > 6 THEN 'Mature' ELSE 'New' END RETURN p.name, timeCategory;
+
+# 19. LET与复杂字符串处理
+MATCH (p:Product) LET name = p.name LET nameLength = length(name) LET nameWords = split(name, ' ') LET wordCount = size(nameWords) LET avgWordLength = nameLength / wordCount LET complexity = CASE WHEN avgWordLength > 8 THEN 'Complex' WHEN avgWordLength > 5 THEN 'Medium' ELSE 'Simple' END RETURN p.name, complexity;
+
+# 20. LET与数值分析
+MATCH (p:Product) LET price = p.price LET cost = p.cost LET profit = price - cost LET profitMargin = profit / price * 100 LET roi = profit / cost * 100 LET performance = CASE WHEN roi > 100 THEN 'Excellent' WHEN roi > 50 THEN 'Good' WHEN roi > 0 THEN 'Profitable' ELSE 'Loss' END RETURN p.name, performance;
+
+# 21. LET与条件聚合
+MATCH (p:Product) LET totalSales = sum(p.sales) LET avgSales = avg(p.sales) LET salesRatio = p.sales / avgSales LET salesCategory = CASE WHEN salesRatio > 2 THEN 'High' WHEN salesRatio > 1 THEN 'Average' ELSE 'Low' END RETURN p.name, salesCategory;
+
+# 22. LET与复杂逻辑
+MATCH (p:Product) LET isExpensive = p.price > 1000 LET isPopular = p.views > 10000 LET isRated = p.rating > 4.0 LET isInStock = p.stock > 0 LET recommendation = CASE WHEN isExpensive AND isPopular AND isRated THEN 'Premium Choice' WHEN isPopular AND isRated AND NOT isExpensive THEN 'Best Value' WHEN isPopular AND NOT isRated THEN 'Popular but Mixed Reviews' ELSE 'Consider Alternatives' END RETURN p.name, recommendation;
+
+# 23. LET与多维度分析
+MATCH (p:Product) LET priceScore = CASE WHEN p.price < 100 THEN 3 WHEN p.price < 500 THEN 2 ELSE 1 END LET qualityScore = CASE WHEN p.rating > 4.5 THEN 3 WHEN p.rating > 3.5 THEN 2 ELSE 1 END LET availabilityScore = CASE WHEN p.stock > 100 THEN 3 WHEN p.stock > 10 THEN 2 ELSE 1 END LET totalScore = priceScore + qualityScore + availabilityScore LET recommendation = CASE WHEN totalScore >= 8 THEN 'Highly Recommended' WHEN totalScore >= 6 THEN 'Recommended' WHEN totalScore >= 4 THEN 'Consider' ELSE 'Not Recommended' END RETURN p.name, recommendation;
+
+# 24. LET与动态计算
+MATCH (p:Product) LET currentDate = date() LET daysSinceCreated = duration.between(p.createdDate, currentDate).days LET ageInMonths = daysSinceCreated / 30 LET depreciationRate = ageInMonths * 0.01 LET currentValue = p.price * (1 - depreciationRate) LET valueCategory = CASE WHEN currentValue > p.price * 0.8 THEN 'High Value' WHEN currentValue > p.price * 0.5 THEN 'Medium Value' ELSE 'Low Value' END RETURN p.name, valueCategory;
+
+# 25. LET与复杂字符串操作
+MATCH (p:Product) LET name = p.name LET nameLength = length(name) LET nameWords = split(name, ' ') LET wordCount = size(nameWords) LET avgWordLength = nameLength / wordCount LET longestWord = reduce(longest = '', word IN nameWords | CASE WHEN length(word) > length(longest) THEN word ELSE longest END) LET shortestWord = reduce(shortest = nameWords[0], word IN nameWords | CASE WHEN length(word) < length(shortest) THEN word ELSE shortest END) LET wordAnalysis = 'Longest: ' + longestWord + ', Shortest: ' + shortestWord + ', Avg Length: ' + toString(avgWordLength) RETURN p.name, wordAnalysis;
+
+# 26. LET与复杂数值计算
+MATCH (p:Product) LET price = p.price LET cost = p.cost LET profit = price - cost LET profitMargin = profit / price * 100 LET roi = profit / cost * 100 LET breakEvenPoint = cost / (price - cost) LET paybackPeriod = breakEvenPoint / 12 LET investmentGrade = CASE WHEN roi > 200 THEN 'A+' WHEN roi > 100 THEN 'A' WHEN roi > 50 THEN 'B' WHEN roi > 0 THEN 'C' ELSE 'D' END RETURN p.name, investmentGrade;
+
+# 27. LET与复杂条件逻辑
+MATCH (p:Product) LET price = p.price LET rating = p.rating LET stock = p.stock LET views = p.views LET isHighEnd = price > 1000 LET isHighQuality = rating > 4.0 LET isWellStocked = stock > 100 LET isPopular = views > 10000 LET marketPosition = CASE WHEN isHighEnd AND isHighQuality THEN 'Premium' WHEN isHighQuality AND isPopular THEN 'Popular' WHEN isHighEnd AND isWellStocked THEN 'Luxury' WHEN isPopular AND isWellStocked THEN 'Mainstream' ELSE 'Niche' END RETURN p.name, marketPosition;
+
+# 28. LET与复杂聚合分析
+MATCH (p:Product) LET totalSales = sum(p.sales) LET avgSales = avg(p.sales) LET maxSales = max(p.sales) LET minSales = min(p.sales) LET salesRange = maxSales - minSales LET salesVariance = avgSales - p.sales LET salesPerformance = CASE WHEN salesVariance > 0 THEN 'Above Average' WHEN salesVariance = 0 THEN 'Average' ELSE 'Below Average' END RETURN p.name, salesPerformance;
+
+# 29. LET与复杂时间分析
+MATCH (p:Product) LET createdDate = p.createdDate LET currentDate = date() LET daysSinceCreated = duration.between(createdDate, currentDate).days LET weeksSinceCreated = daysSinceCreated / 7 LET monthsSinceCreated = daysSinceCreated / 30 LET yearsSinceCreated = daysSinceCreated / 365 LET lifecycleStage = CASE WHEN yearsSinceCreated > 2 THEN 'Mature' WHEN monthsSinceCreated > 6 THEN 'Established' WHEN weeksSinceCreated > 4 THEN 'Growing' ELSE 'New' END RETURN p.name, lifecycleStage;
+
+# 30. LET与复杂推荐算法
+MATCH (p:Product) LET price = p.price LET rating = p.rating LET stock = p.stock LET views = p.views LET sales = p.sales LET priceScore = CASE WHEN price < 100 THEN 3 WHEN price < 500 THEN 2 ELSE 1 END LET qualityScore = CASE WHEN rating > 4.5 THEN 3 WHEN rating > 3.5 THEN 2 ELSE 1 END LET availabilityScore = CASE WHEN stock > 100 THEN 3 WHEN stock > 10 THEN 2 ELSE 1 END LET popularityScore = CASE WHEN views > 100000 THEN 3 WHEN views > 10000 THEN 2 ELSE 1 END LET salesScore = CASE WHEN sales > 1000 THEN 3 WHEN sales > 100 THEN 2 ELSE 1 END LET totalScore = priceScore + qualityScore + availabilityScore + popularityScore + salesScore LET recommendation = CASE WHEN totalScore >= 12 THEN 'Top Pick' WHEN totalScore >= 9 THEN 'Highly Recommended' WHEN totalScore >= 6 THEN 'Recommended' WHEN totalScore >= 3 THEN 'Consider' ELSE 'Not Recommended' END RETURN p.name, recommendation;

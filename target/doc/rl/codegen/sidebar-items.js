@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DependencySource","FileType","OptimizationLevel","PerformanceEstimate"],"struct":["CBackend","CodeGenerator","CodeMetadata","Dependency","GeneratedCode","GeneratedFile","GeneratedRustCode","JavaScriptBackend","PerformanceMetrics","PythonBackend","RustBackend"],"trait":["CodeGenBackend"]};

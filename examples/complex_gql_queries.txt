@@ -1,0 +1,1008 @@
+# 复杂GraphQL查询语句集
+# 用于测试GQL 2024解析器功能
+
+## 1. 基础复杂查询
+
+# 嵌套字段查询
+query GetUserProfile($userId: ID!) {
+  user(id: $userId) {
+    id
+    name
+    email
+    profile {
+      bio
+      avatar
+      socialLinks {
+        platform
+        url
+      }
+    }
+    posts(first: 10, orderBy: CREATED_AT_DESC) {
+      edges {
+        node {
+          id
+          title
+          content
+          createdAt
+          author {
+            name
+            avatar
+          }
+          comments(first: 5) {
+            edges {
+              node {
+                id
+                content
+                author {
+                  name
+                }
+                createdAt
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+}
+
+# 复杂条件查询
+query SearchUsers($filters: UserFilters!, $pagination: PaginationInput!) {
+  users(filters: $filters, pagination: $pagination) {
+    edges {
+      node {
+        id
+        name
+        email
+        age
+        location {
+          city
+          country
+        }
+        skills {
+          name
+          level
+          category
+        }
+        experience {
+          company
+          position
+          duration
+          description
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+      totalCount
+    }
+  }
+}
+
+## 2. 复杂变更操作
+
+# 复杂创建操作
+mutation CreateUserWithProfile($input: CreateUserInput!) {
+  createUser(input: $input) {
+    user {
+      id
+      name
+      email
+      profile {
+        bio
+        avatar
+        preferences {
+          theme
+          notifications
+          privacy
+        }
+      }
+      createdAt
+      updatedAt
+    }
+    errors {
+      field
+      message
+      code
+    }
+  }
+}
+
+# 批量更新操作
+mutation UpdateMultipleUsers($updates: [UserUpdateInput!]!) {
+  updateUsers(updates: $updates) {
+    users {
+      id
+      name
+      email
+      updatedAt
+    }
+    errors {
+      field
+      message
+      code
+    }
+  }
+}
+
+# 复杂删除操作
+mutation DeleteUserWithCascade($userId: ID!, $options: DeleteOptions!) {
+  deleteUser(id: $userId, options: $options) {
+    success
+    deletedCount
+    errors {
+      field
+      message
+      code
+    }
+  }
+}
+
+## 3. 复杂订阅操作
+
+# 实时数据订阅
+subscription UserActivityUpdates($userId: ID!) {
+  userActivityUpdates(userId: $userId) {
+    type
+    timestamp
+    data {
+      ... on PostCreated {
+        post {
+          id
+          title
+          content
+          author {
+            name
+            avatar
+          }
+        }
+      }
+      ... on CommentAdded {
+        comment {
+          id
+          content
+          author {
+            name
+          }
+          post {
+            id
+            title
+          }
+        }
+      }
+      ... on LikeAdded {
+        like {
+          id
+          user {
+            name
+          }
+          post {
+            id
+            title
+          }
+        }
+      }
+    }
+  }
+}
+
+# 复杂实时聚合
+subscription AnalyticsUpdates($filters: AnalyticsFilters!) {
+  analyticsUpdates(filters: $filters) {
+    metrics {
+      ... on UserMetrics {
+        totalUsers
+        activeUsers
+        newUsers
+        userGrowth
+      }
+      ... on PostMetrics {
+        totalPosts
+        publishedPosts
+        draftPosts
+        postEngagement
+      }
+      ... on EngagementMetrics {
+        totalLikes
+        totalComments
+        totalShares
+        engagementRate
+      }
+    }
+    timestamp
+    period
+  }
+}
+
+## 4. 复杂片段查询
+
+# 用户信息片段
+fragment UserInfo on User {
+  id
+  name
+  email
+  avatar
+  bio
+  location {
+    city
+    country
+  }
+  socialLinks {
+    platform
+    url
+  }
+  createdAt
+  updatedAt
+}
+
+# 文章信息片段
+fragment PostInfo on Post {
+  id
+  title
+  content
+  excerpt
+  author {
+    ...UserInfo
+  }
+  tags {
+    name
+    slug
+  }
+  stats {
+    likes
+    comments
+    shares
+    views
+  }
+  createdAt
+  updatedAt
+}
+
+# 评论信息片段
+fragment CommentInfo on Comment {
+  id
+  content
+  author {
+    ...UserInfo
+  }
+  post {
+    id
+    title
+  }
+  parent {
+    id
+    content
+  }
+  replies {
+    edges {
+      node {
+        ...CommentInfo
+      }
+    }
+  }
+  createdAt
+  updatedAt
+}
+
+# 使用片段的复杂查询
+query GetUserWithPostsAndComments($userId: ID!) {
+  user(id: $userId) {
+    ...UserInfo
+    posts(first: 10) {
+      edges {
+        node {
+          ...PostInfo
+          comments(first: 5) {
+            edges {
+              node {
+                ...CommentInfo
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+## 5. 复杂内联片段
+
+# 联合类型查询
+query SearchContent($query: String!) {
+  search(query: $query) {
+    ... on User {
+      id
+      name
+      email
+      profile {
+        bio
+        avatar
+      }
+      posts(first: 5) {
+        edges {
+          node {
+            id
+            title
+            content
+          }
+        }
+      }
+    }
+    ... on Post {
+      id
+      title
+      content
+      author {
+        name
+        avatar
+      }
+      tags {
+        name
+        slug
+      }
+      stats {
+        likes
+        comments
+        shares
+      }
+    }
+    ... on Comment {
+      id
+      content
+      author {
+        name
+        avatar
+      }
+      post {
+        id
+        title
+      }
+    }
+  }
+}
+
+# 接口类型查询
+query GetNode($id: ID!) {
+  node(id: $id) {
+    ... on User {
+      id
+      name
+      email
+      posts(first: 10) {
+        edges {
+          node {
+            id
+            title
+            content
+          }
+        }
+      }
+    }
+    ... on Post {
+      id
+      title
+      content
+      author {
+        id
+        name
+        avatar
+      }
+      comments(first: 10) {
+        edges {
+          node {
+            id
+            content
+            author {
+              name
+            }
+          }
+        }
+      }
+    }
+    ... on Comment {
+      id
+      content
+      author {
+        id
+        name
+        avatar
+      }
+      post {
+        id
+        title
+      }
+    }
+  }
+}
+
+## 6. 复杂指令查询
+
+# 条件字段查询
+query GetUserData($userId: ID!, $includePosts: Boolean!, $includeComments: Boolean!) {
+  user(id: $userId) {
+    id
+    name
+    email
+    posts @include(if: $includePosts) {
+      edges {
+        node {
+          id
+          title
+          content
+          comments @include(if: $includeComments) {
+            edges {
+              node {
+                id
+                content
+                author {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# 跳过字段查询
+query GetUserProfile($userId: ID!, $skipAvatar: Boolean!) {
+  user(id: $userId) {
+    id
+    name
+    email
+    avatar @skip(if: $skipAvatar)
+    profile {
+      bio
+      socialLinks {
+        platform
+        url
+      }
+    }
+  }
+}
+
+# 自定义指令查询
+query GetUserWithAuth($userId: ID!) {
+  user(id: $userId) {
+    id
+    name
+    email
+    posts(first: 10) @auth(role: USER) {
+      edges {
+        node {
+          id
+          title
+          content
+          author {
+            name
+          }
+        }
+      }
+    }
+    privateData @auth(role: ADMIN) {
+      internalNotes
+      adminComments
+      lastLogin
+    }
+  }
+}
+
+## 7. 复杂变量查询
+
+# 复杂输入类型
+query GetFilteredPosts($filters: PostFilters!, $pagination: PaginationInput!, $sort: PostSortInput!) {
+  posts(filters: $filters, pagination: $pagination, sort: $sort) {
+    edges {
+      node {
+        id
+        title
+        content
+        author {
+          id
+          name
+          avatar
+        }
+        tags {
+          name
+          slug
+        }
+        stats {
+          likes
+          comments
+          shares
+          views
+        }
+        createdAt
+        updatedAt
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+      totalCount
+    }
+  }
+}
+
+# 复杂枚举查询
+query GetUsersByRole($role: UserRole!, $status: UserStatus!) {
+  users(role: $role, status: $status) {
+    edges {
+      node {
+        id
+        name
+        email
+        role
+        status
+        permissions {
+          name
+          description
+          level
+        }
+      }
+    }
+  }
+}
+
+## 8. 复杂联合查询
+
+# 多表联合查询
+query GetDashboardData($userId: ID!) {
+  user(id: $userId) {
+    id
+    name
+    email
+    stats {
+      postsCount
+      commentsCount
+      likesCount
+      followersCount
+      followingCount
+    }
+    recentActivity {
+      ... on PostCreated {
+        id
+        title
+        createdAt
+      }
+      ... on CommentAdded {
+        id
+        content
+        post {
+          id
+          title
+        }
+        createdAt
+      }
+      ... on LikeAdded {
+        id
+        post {
+          id
+          title
+        }
+        createdAt
+      }
+    }
+  }
+  notifications(first: 10) {
+    edges {
+      node {
+        id
+        type
+        message
+        read
+        createdAt
+      }
+    }
+  }
+}
+
+## 9. 复杂嵌套查询
+
+# 深度嵌套查询
+query GetUserWithEverything($userId: ID!) {
+  user(id: $userId) {
+    id
+    name
+    email
+    profile {
+      bio
+      avatar
+      socialLinks {
+        platform
+        url
+      }
+      preferences {
+        theme
+        notifications
+        privacy
+        language
+      }
+    }
+    posts(first: 10) {
+      edges {
+        node {
+          id
+          title
+          content
+          tags {
+            name
+            slug
+          }
+          author {
+            id
+            name
+            avatar
+          }
+          comments(first: 5) {
+            edges {
+              node {
+                id
+                content
+                author {
+                  id
+                  name
+                  avatar
+                }
+                replies(first: 3) {
+                  edges {
+                    node {
+                      id
+                      content
+                      author {
+                        id
+                        name
+                        avatar
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          stats {
+            likes
+            comments
+            shares
+            views
+          }
+        }
+      }
+    }
+    followers(first: 20) {
+      edges {
+        node {
+          id
+          name
+          avatar
+          bio
+        }
+      }
+    }
+    following(first: 20) {
+      edges {
+        node {
+          id
+          name
+          avatar
+          bio
+        }
+      }
+    }
+  }
+}
+
+## 10. 复杂聚合查询
+
+# 统计查询
+query GetAnalytics($filters: AnalyticsFilters!, $period: TimePeriod!) {
+  analytics(filters: $filters, period: $period) {
+    users {
+      total
+      active
+      new
+      growth
+      demographics {
+        ageGroups {
+          range
+          count
+          percentage
+        }
+        locations {
+          country
+          count
+          percentage
+        }
+      }
+    }
+    posts {
+      total
+      published
+      draft
+      engagement {
+        likes
+        comments
+        shares
+        views
+      }
+      trends {
+        date
+        count
+        engagement
+      }
+    }
+    content {
+      popularTags {
+        name
+        count
+        growth
+      }
+      topPosts {
+        id
+        title
+        engagement
+        author {
+          name
+        }
+      }
+    }
+  }
+}
+
+## 11. 复杂时间查询
+
+# 时间范围查询
+query GetTimeBasedData($startDate: DateTime!, $endDate: DateTime!) {
+  posts(
+    filters: {
+      dateRange: {
+        start: $startDate
+        end: $endDate
+      }
+    }
+  ) {
+    edges {
+      node {
+        id
+        title
+        content
+        createdAt
+        updatedAt
+        author {
+          name
+        }
+        stats {
+          likes
+          comments
+          shares
+          views
+        }
+      }
+    }
+  }
+  users(
+    filters: {
+      dateRange: {
+        start: $startDate
+        end: $endDate
+      }
+    }
+  ) {
+    edges {
+      node {
+        id
+        name
+        email
+        createdAt
+        lastLogin
+        activity {
+          postsCount
+          commentsCount
+          likesCount
+        }
+      }
+    }
+  }
+}
+
+## 12. 复杂错误处理
+
+# 错误处理查询
+query GetUserWithErrorHandling($userId: ID!) {
+  user(id: $userId) {
+    id
+    name
+    email
+    posts(first: 10) {
+      edges {
+        node {
+          id
+          title
+          content
+          comments(first: 5) {
+            edges {
+              node {
+                id
+                content
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            errors {
+              message
+              code
+              field
+            }
+          }
+        }
+      }
+      errors {
+        message
+        code
+        field
+      }
+    }
+  }
+}
+
+## 13. 复杂自定义标量
+
+# 自定义标量查询
+query GetUserWithCustomScalars($userId: ID!) {
+  user(id: $userId) {
+    id
+    name
+    email
+    createdAt
+    lastLogin
+    profile {
+      bio
+      avatar
+      metadata {
+        jsonData
+        customFields
+      }
+    }
+    posts(first: 10) {
+      edges {
+        node {
+          id
+          title
+          content
+          createdAt
+          updatedAt
+          tags {
+            name
+            slug
+          }
+        }
+      }
+    }
+  }
+}
+
+## 14. 复杂接口查询
+
+# 接口类型查询
+query GetContentItems($filters: ContentFilters!) {
+  contentItems(filters: $filters) {
+    edges {
+      node {
+        id
+        title
+        content
+        createdAt
+        updatedAt
+        author {
+          id
+          name
+          avatar
+        }
+        ... on Post {
+          tags {
+            name
+            slug
+          }
+          stats {
+            likes
+            comments
+            shares
+            views
+          }
+        }
+        ... on Comment {
+          post {
+            id
+            title
+          }
+          parent {
+            id
+            content
+          }
+          replies {
+            edges {
+              node {
+                id
+                content
+                author {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+## 15. 复杂订阅过滤
+
+# 过滤订阅
+subscription FilteredUpdates($filters: UpdateFilters!) {
+  contentUpdates(filters: $filters) {
+    type
+    timestamp
+    data {
+      ... on PostCreated {
+        post {
+          id
+          title
+          content
+          author {
+            name
+            avatar
+          }
+          tags {
+            name
+            slug
+          }
+        }
+      }
+      ... on CommentAdded {
+        comment {
+          id
+          content
+          author {
+            name
+            avatar
+          }
+          post {
+            id
+            title
+          }
+        }
+      }
+      ... on LikeAdded {
+        like {
+          id
+          user {
+            name
+            avatar
+          }
+          post {
+            id
+            title
+          }
+        }
+      }
+    }
+  }
+}

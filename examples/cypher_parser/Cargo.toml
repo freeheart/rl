@@ -1,0 +1,21 @@
+[package]
+name = "cypher_parser"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jinzhu.Zhang <freeheart1977@example.com>"]
+license = "MIT"
+description = "CYPHER解析器示例 - 使用RL生成"
+
+[dependencies]
+rl = { path = "../../" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+anyhow = "1.0"
+
+[dev-dependencies]
+criterion = "0.5"
+
+# [[bench]]
+# name = "cypher_parser_bench"
+# harness = false

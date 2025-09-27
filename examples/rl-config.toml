@@ -1,0 +1,287 @@
+# RL解析器生成器配置文件
+# 用于配置RL组件的各种参数和选项
+
+[general]
+name = "RL Parser Generator"
+version = "0.1.0"
+description = "高性能Rust解析器生成器"
+author = "Jinzhu.Zhang 张金柱（网名：freeheart1977） 星光"
+license = "MIT"
+
+[parser]
+# 语法文件配置
+grammar_files = [
+    "examples/cypher25_grammar.rl",
+    "examples/gql2024_grammar.rl", 
+    "examples/sql_grammar.rl"
+]
+
+# 解析算法配置
+algorithm = "hybrid"  # ll1, lalr1, glr, hybrid
+optimization_level = "high"  # low, medium, high
+zero_copy_enabled = true
+parallel_parsing = true
+
+# 性能参数
+max_memory_usage = "1GB"
+thread_pool_size = 8
+cache_size = "512MB"
+
+[planner]
+# 规划算法配置
+algorithm = "cost_based"  # cost_based, rule_based, ai_enhanced
+optimization_rules = [
+    "join_reordering",
+    "predicate_pushdown", 
+    "projection_pushdown",
+    "index_selection",
+    "parallel_execution"
+]
+
+# 并行执行配置
+parallelism = 4
+max_parallel_degree = 16
+parallel_threshold = 1000
+
+# 成本模型配置
+cost_model = "advanced"  # simple, advanced, ai_enhanced
+cpu_cost_weight = 1.0
+io_cost_weight = 10.0
+memory_cost_weight = 0.1
+
+[executor]
+# 执行模式配置
+execution_mode = "parallel"  # sequential, parallel, streaming
+memory_limit = "1GB"
+cache_size = "512MB"
+profiling_enabled = true
+
+# 执行优化配置
+batch_size = 1000
+prefetch_size = 100
+connection_pool_size = 20
+
+# 错误处理配置
+max_retries = 3
+retry_delay = "100ms"
+circuit_breaker_enabled = true
+
+[ai_enhancement]
+# AI功能配置
+enabled = true
+model_path = "models/rl-ai-model.bin"
+confidence_threshold = 0.8
+learning_enabled = true
+
+# AI分析配置
+grammar_analysis = true
+error_fixing = true
+optimization_suggestions = true
+documentation_generation = true
+
+# AI模型配置
+model_type = "transformer"  # transformer, lstm, cnn
+max_sequence_length = 2048
+batch_size = 32
+learning_rate = 0.001
+
+[knowledge_graph]
+# 知识图谱配置
+enabled = true
+graph_format = "neo4j"  # neo4j, graphml, rdf, json
+export_path = "knowledge_graphs/"
+
+# 语义分析配置
+semantic_analysis = true
+concept_extraction = true
+relationship_discovery = true
+context_awareness = true
+
+# 可视化配置
+visualization_enabled = true
+export_formats = ["html", "svg", "png"]
+interactive_visualization = true
+
+[performance]
+# 性能优化配置
+zero_copy_enabled = true
+memory_pool_size = "256MB"
+thread_pool_size = 8
+rayon_threads = 8
+
+# 缓存配置
+lru_cache_size = 1000
+cache_ttl = "1h"
+cache_eviction_policy = "lru"
+
+# 监控配置
+metrics_enabled = true
+profiling_enabled = true
+tracing_enabled = true
+log_level = "info"
+
+[security]
+# 安全配置
+authentication_enabled = true
+authorization_enabled = true
+audit_logging = true
+encryption_enabled = true
+
+# 访问控制配置
+max_query_length = 10000
+max_execution_time = "30s"
+rate_limiting_enabled = true
+rate_limit = 1000  # requests per minute
+
+[logging]
+# 日志配置
+level = "info"  # trace, debug, info, warn, error
+format = "json"  # json, text, pretty
+output = "stdout"  # stdout, stderr, file
+file_path = "logs/rl.log"
+max_file_size = "100MB"
+max_files = 10
+
+# 结构化日志配置
+structured_logging = true
+include_timestamp = true
+include_thread_id = true
+include_request_id = true
+
+[monitoring]
+# 监控配置
+metrics_enabled = true
+prometheus_enabled = true
+prometheus_port = 9090
+health_check_enabled = true
+health_check_interval = "30s"
+
+# 性能监控配置
+cpu_monitoring = true
+memory_monitoring = true
+disk_monitoring = true
+network_monitoring = true
+
+[network]
+# 网络配置
+bind_address = "0.0.0.0"
+port = 8080
+max_connections = 1000
+connection_timeout = "30s"
+read_timeout = "60s"
+write_timeout = "60s"
+
+# TLS配置
+tls_enabled = false
+tls_cert_path = "certs/server.crt"
+tls_key_path = "certs/server.key"
+
+[storage]
+# 存储配置
+type = "memory"  # memory, file, database
+file_path = "data/rl.db"
+max_file_size = "1GB"
+compression_enabled = true
+
+# 数据库配置（如果使用数据库存储）
+database_url = "postgresql://user:password@localhost/rl"
+connection_pool_size = 20
+max_connections = 100
+
+[cache]
+# 缓存配置
+type = "memory"  # memory, redis, memcached
+redis_url = "redis://localhost:6379"
+memcached_url = "localhost:11211"
+ttl = "1h"
+max_size = "1GB"
+
+# 缓存策略配置
+eviction_policy = "lru"  # lru, lfu, ttl
+preload_enabled = true
+warmup_queries = [
+    "SELECT * FROM users LIMIT 10",
+    "MATCH (n:Person) RETURN n LIMIT 10",
+    "{ users { id name } }"
+]
+
+[development]
+# 开发配置
+debug_mode = true
+hot_reload = true
+auto_restart = true
+watch_files = true
+
+# 测试配置
+test_mode = false
+mock_ai = false
+mock_knowledge_graph = false
+
+[production]
+# 生产配置
+debug_mode = false
+hot_reload = false
+auto_restart = false
+watch_files = false
+
+# 性能配置
+optimization_level = "high"
+zero_copy_enabled = true
+parallel_processing = true
+memory_optimization = true
+
+# 安全配置
+authentication_required = true
+authorization_enabled = true
+audit_logging = true
+encryption_enabled = true
+
+[testing]
+# 测试配置
+test_data_path = "test_data/"
+benchmark_enabled = true
+performance_testing = true
+load_testing = true
+
+# 测试用例配置
+cypher_test_queries = "examples/complex_cypher_queries.txt"
+gql_test_queries = "examples/complex_gql_queries.txt"
+sql_test_queries = "examples/complex_sql_queries.txt"
+
+# 基准测试配置
+benchmark_iterations = 1000
+benchmark_warmup = 100
+benchmark_timeout = "5m"
+
+[deployment]
+# 部署配置
+environment = "development"  # development, staging, production
+docker_enabled = false
+kubernetes_enabled = false
+
+# Docker配置
+docker_image = "rl-parser:latest"
+docker_registry = "registry.example.com"
+docker_tag = "latest"
+
+# Kubernetes配置
+namespace = "rl-parser"
+replicas = 3
+resources = { cpu = "500m", memory = "1Gi" }
+autoscaling = { min_replicas = 1, max_replicas = 10 }
+
+[integration]
+# 集成配置
+database_integration = true
+cache_integration = true
+message_queue_integration = false
+monitoring_integration = true
+
+# 外部服务配置
+external_ai_service = false
+external_ai_url = "https://api.example.com/ai"
+external_ai_key = "your-api-key"
+
+external_knowledge_graph = false
+external_kg_url = "https://kg.example.com"
+external_kg_key = "your-kg-key"

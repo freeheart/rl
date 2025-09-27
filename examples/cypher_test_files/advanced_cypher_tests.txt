@@ -1,0 +1,169 @@
+# 高级CYPHER语句测试文件
+# 包含100+个中等复杂度到高复杂度的CYPHER语句
+
+# 1. 复杂WHERE条件
+MATCH (n:Person) WHERE n.age > 25 AND n.age < 65 AND n.city = 'New York' RETURN n.name;
+MATCH (n:Person) WHERE n.age IN [25, 30, 35, 40] OR n.name STARTS WITH 'A' RETURN n.name;
+MATCH (n:Person) WHERE n.age BETWEEN 25 AND 65 AND n.name CONTAINS 'son' RETURN n.name;
+MATCH (n:Person) WHERE n.age > 25 AND (n.city = 'New York' OR n.city = 'Boston') RETURN n.name;
+
+# 2. 复杂关系模式
+MATCH (a:Person)-[:KNOWS*2..4]->(b:Person) WHERE a.age > b.age RETURN a.name, b.name;
+MATCH (a:Person)-[:KNOWS]->(b:Person)-[:KNOWS]->(c:Person) WHERE a <> c RETURN a.name, c.name;
+MATCH (a:Person)-[:KNOWS*1..3]->(b:Person) WHERE a.age > 30 AND b.age < 30 RETURN a.name, b.name;
+MATCH (a:Person)-[:WORKS_AT]->(c:Company)<-[:WORKS_AT]-(b:Person) WHERE a <> b RETURN a.name, b.name, c.name;
+
+# 3. 复杂聚合查询
+MATCH (n:Person) RETURN n.department, count(n) AS deptSize, avg(n.age) AS avgAge, max(n.age) AS maxAge, min(n.age) AS minAge;
+MATCH (n:Person) WHERE n.age > 25 RETURN n.department, count(n) AS deptSize HAVING count(n) > 5;
+MATCH (n:Person) RETURN n.department, collect(n.name) AS names, collect(n.age) AS ages ORDER BY count(n) DESC;
+
+# 4. 复杂WITH子句
+MATCH (n:Person) WITH n, n.age * 2 AS doubleAge WHERE doubleAge > 50 RETURN n.name, doubleAge;
+MATCH (n:Person) WITH n ORDER BY n.age DESC LIMIT 10 WITH n WHERE n.city = 'New York' RETURN n.name;
+MATCH (n:Person) WITH n, count(n) AS total WHERE total > 1 RETURN n.name, total;
+
+# 5. 复杂CASE表达式
+MATCH (n:Person) RETURN n.name, n.age,
+CASE n.age
+  WHEN 18 THEN 'Just Adult'
+  WHEN 21 THEN 'Legal Drinking'
+  WHEN 65 THEN 'Retirement'
+  ELSE 'Other'
+END AS ageMilestone;
+
+MATCH (n:Person) RETURN n.name,
+CASE 
+  WHEN n.age < 18 THEN 'Minor'
+  WHEN n.age BETWEEN 18 AND 25 THEN 'Young Adult'
+  WHEN n.age BETWEEN 26 AND 40 THEN 'Adult'
+  WHEN n.age BETWEEN 41 AND 65 THEN 'Middle Age'
+  ELSE 'Senior'
+END AS ageCategory;
+
+# 6. 复杂字符串操作
+MATCH (n:Person) WHERE n.name =~ 'A.*' AND length(n.name) > 3 RETURN n.name;
+MATCH (n:Person) WHERE n.email CONTAINS '@' AND n.email ENDS WITH '.com' RETURN n.name, n.email;
+MATCH (n:Person) RETURN n.name, substring(n.name, 0, 3) AS firstThree, substring(n.name, -3) AS lastThree;
+
+# 7. 复杂数值计算
+MATCH (n:Person) WHERE n.salary > 50000 AND n.salary < 100000 RETURN n.name, n.salary, n.salary * 0.1 AS bonus;
+MATCH (n:Person) RETURN n.name, n.age, n.age / 10 AS decades, n.age % 10 AS remainder;
+MATCH (n:Person) WHERE n.age + 5 > 30 AND n.age - 5 < 65 RETURN n.name, n.age;
+
+# 8. 复杂列表操作
+MATCH (n:Person) WHERE size(n.hobbies) > 2 AND 'reading' IN n.hobbies RETURN n.name, n.hobbies;
+MATCH (n:Person) WHERE n.skills[0] = 'Java' AND size(n.skills) > 3 RETURN n.name, n.skills;
+MATCH (n:Person) RETURN n.name, n.hobbies[0..2] AS topHobbies, n.skills[-2..] AS recentSkills;
+
+# 9. 复杂日期时间操作
+MATCH (n:Person) WHERE n.birthDate.year > 1990 AND n.birthDate.month = 1 RETURN n.name, n.birthDate;
+MATCH (n:Person) WHERE n.createdAt > datetime('2020-01-01T00:00:00') AND n.createdAt < datetime('2023-12-31T23:59:59') RETURN n.name;
+MATCH (n:Person) RETURN n.name, n.birthDate.year AS birthYear, n.birthDate.month AS birthMonth;
+
+# 10. 复杂EXISTS子查询
+MATCH (n:Person) WHERE EXISTS { MATCH (n)-[:KNOWS]->(m:Person) WHERE m.age > n.age } RETURN n.name;
+MATCH (n:Person) WHERE EXISTS { MATCH (n)-[:WORKS_AT]->(c:Company) WHERE c.industry = 'Technology' } RETURN n.name;
+MATCH (n:Person) WHERE NOT EXISTS { MATCH (n)-[:KNOWS]->(m:Person) WHERE m.age < 25 } RETURN n.name;
+
+# 11. 复杂OPTIONAL MATCH
+MATCH (n:Person) OPTIONAL MATCH (n)-[:KNOWS]->(friend:Person) WHERE friend.age > 30 RETURN n.name, friend.name;
+MATCH (n:Person) OPTIONAL MATCH (n)-[:WORKS_AT]->(company:Company) OPTIONAL MATCH (n)-[:LIVES_IN]->(city:City) RETURN n.name, company.name, city.name;
+
+# 12. 复杂路径查询
+MATCH path = (a:Person)-[:KNOWS*1..3]->(b:Person) WHERE a.age > b.age RETURN path, length(path) AS pathLength;
+MATCH path = (a:Person)-[:KNOWS*]->(b:Person) WHERE a <> b RETURN path, length(path) AS pathLength ORDER BY pathLength;
+
+# 13. 复杂UNION查询
+MATCH (n:Person) WHERE n.age < 30 RETURN n.name AS name, n.age AS age
+UNION
+MATCH (n:Person) WHERE n.age >= 30 AND n.age < 60 RETURN n.name AS name, n.age AS age
+UNION
+MATCH (n:Person) WHERE n.age >= 60 RETURN n.name AS name, n.age AS age;
+
+# 14. 复杂CALL子句
+CALL db.labels() YIELD label WHERE label CONTAINS 'Person' RETURN label;
+CALL db.relationshipTypes() YIELD relationshipType WHERE relationshipType STARTS WITH 'KNOWS' RETURN relationshipType;
+CALL db.schema() YIELD nodes, relationships WHERE size(nodes) > 10 RETURN nodes, relationships;
+
+# 15. 复杂MERGE操作
+MERGE (n:Person {name: 'Alice'}) ON CREATE SET n.age = 30, n.city = 'New York' ON MATCH SET n.lastSeen = datetime();
+MERGE (a:Person {name: 'Alice'})-[:KNOWS {since: 2020}]->(b:Person {name: 'Bob'}) ON CREATE SET a.age = 30, b.age = 25;
+
+# 16. 复杂SET操作
+MATCH (n:Person) WHERE n.name = 'Alice' SET n.age = n.age + 1, n.lastUpdated = datetime();
+MATCH (n:Person) WHERE n.age > 30 SET n += {senior: true, benefits: ['health', 'dental']};
+MATCH (n:Person) WHERE n.department = 'Engineering' SET n.salary = n.salary * 1.1;
+
+# 17. 复杂REMOVE操作
+MATCH (n:Person) WHERE n.age < 18 REMOVE n.salary, n.benefits;
+MATCH (n:Person) WHERE n.name = 'Alice' REMOVE n.tempField1, n.tempField2;
+
+# 18. 复杂DELETE操作
+MATCH (n:Person) WHERE n.age < 18 AND NOT EXISTS { MATCH (n)-[:PARENT_OF]->() } DELETE n;
+MATCH (n:Person) WHERE n.lastLogin < datetime() - duration('P90D') DETACH DELETE n;
+
+# 19. 复杂CREATE操作
+CREATE (n:Person {name: 'Alice', age: 30, city: 'New York', skills: ['Java', 'Python'], hobbies: ['reading', 'swimming']});
+CREATE (a:Person {name: 'Alice'})-[:KNOWS {since: 2020, strength: 'strong'}]->(b:Person {name: 'Bob'});
+CREATE (n:Person {name: 'Charlie'})-[:WORKS_AT {position: 'Engineer', salary: 75000}]->(c:Company {name: 'TechCorp'});
+
+# 20. 复杂参数化查询
+MATCH (n:Person) WHERE n.name = $name AND n.age > $minAge AND n.city = $city RETURN n;
+MATCH (n:Person) WHERE n.department = $dept AND n.salary BETWEEN $minSalary AND $maxSalary RETURN n;
+MATCH (n:Person) WHERE n.skills CONTAINS $skill AND size(n.skills) > $minSkills RETURN n;
+
+# 21. 复杂函数调用
+MATCH (n:Person) RETURN n.name, length(n.name) AS nameLength, toUpper(n.name) AS upperName, toLower(n.name) AS lowerName;
+MATCH (n:Person) RETURN n.name, substring(n.name, 0, 3) AS prefix, substring(n.name, -3) AS suffix;
+MATCH (n:Person) WHERE n.email CONTAINS '@' RETURN n.name, split(n.email, '@')[0] AS username, split(n.email, '@')[1] AS domain;
+
+# 22. 复杂集合操作
+MATCH (n:Person) RETURN collect(n.name) AS allNames, collect(DISTINCT n.department) AS departments;
+MATCH (n:Person) RETURN n.department, collect(n.name) AS names, collect(n.age) AS ages, collect(n.salary) AS salaries;
+MATCH (n:Person) RETURN n.department, collect(n.name)[0..5] AS topNames, collect(n.age)[-3..] AS recentAges;
+
+# 23. 复杂排序和分组
+MATCH (n:Person) RETURN n.department, count(n) AS deptSize, avg(n.age) AS avgAge ORDER BY deptSize DESC, avgAge ASC;
+MATCH (n:Person) RETURN n.department, collect(n.name) AS names ORDER BY size(names) DESC;
+MATCH (n:Person) RETURN n.department, avg(n.salary) AS avgSalary ORDER BY avgSalary DESC;
+
+# 24. 复杂HAVING子句
+MATCH (n:Person) RETURN n.department, count(n) AS deptSize, avg(n.age) AS avgAge HAVING count(n) > 5 AND avg(n.age) > 30;
+MATCH (n:Person) RETURN n.city, count(n) AS citySize, collect(n.name) AS residents HAVING count(n) > 10;
+
+# 25. 复杂DISTINCT操作
+MATCH (n:Person) RETURN DISTINCT n.department ORDER BY n.department;
+MATCH (n:Person) RETURN DISTINCT n.city, n.state ORDER BY n.city, n.state;
+MATCH (n:Person) RETURN DISTINCT n.department, n.city ORDER BY n.department, n.city;
+
+# 26. 复杂LIMIT和SKIP
+MATCH (n:Person) RETURN n.name ORDER BY n.age DESC SKIP 10 LIMIT 20;
+MATCH (n:Person) RETURN n.department, count(n) AS deptSize ORDER BY deptSize DESC LIMIT 5;
+MATCH (n:Person) RETURN n.name, n.age ORDER BY n.age ASC SKIP 5 LIMIT 10;
+
+# 27. 复杂WITH和UNWIND
+MATCH (n:Person) UNWIND n.skills AS skill RETURN n.name, skill;
+MATCH (n:Person) UNWIND n.hobbies AS hobby WHERE hobby = 'reading' RETURN n.name, hobby;
+MATCH (n:Person) UNWIND range(0, size(n.skills)-1) AS i RETURN n.name, n.skills[i] AS skill;
+
+# 28. 复杂范围查询
+MATCH (n:Person) WHERE n.age IN range(25, 65) RETURN n.name, n.age;
+MATCH (n:Person) WHERE n.salary IN range(50000, 100000, 10000) RETURN n.name, n.salary;
+MATCH (n:Person) RETURN n.name, range(0, n.age, 10) AS ageDecades;
+
+# 29. 复杂条件聚合
+MATCH (n:Person) RETURN n.department, 
+  count(n) AS total,
+  count(CASE WHEN n.age < 30 THEN 1 END) AS young,
+  count(CASE WHEN n.age >= 30 AND n.age < 60 THEN 1 END) AS middle,
+  count(CASE WHEN n.age >= 60 THEN 1 END) AS senior;
+
+# 30. 复杂嵌套查询
+MATCH (n:Person) WHERE EXISTS { 
+  MATCH (n)-[:KNOWS]->(m:Person) 
+  WHERE EXISTS { 
+    MATCH (m)-[:WORKS_AT]->(c:Company) 
+    WHERE c.industry = 'Technology' 
+  } 
+} RETURN n.name;

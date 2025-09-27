@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="RL - Right wheeL"><title>rl - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0 (4d91de4e4 2025-02-17)" data-channel="1.85.0" data-search-js="search-75f5ac3e.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rl/index.html">rl</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#rl---right-wheel" title="RL - Right wheeL">RL - Right wheeL</a><ul><li><a href="#特性" title="特性">特性</a></li><li><a href="#使用示例" title="使用示例">使用示例</a></li></ul></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>rl</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/rl/lib.rs.html#1-139">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="rl---right-wheel"><a class="doc-anchor" href="#rl---right-wheel">§</a>RL - Right wheeL</h2>
+<p>高性能Rust解析器生成器</p>
+<h3 id="特性"><a class="doc-anchor" href="#特性">§</a>特性</h3>
+<ul>
+<li>零拷贝解析</li>
+<li>并行处理</li>
+<li>智能缓存</li>
+<li>内存优化</li>
+<li>多目标代码生成</li>
+</ul>
+<h3 id="使用示例"><a class="doc-anchor" href="#使用示例">§</a>使用示例</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>rl::RL;
+<span class="kw">use </span>std::path::Path;
+ 
+<span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
+    <span class="kw">let </span>rl = RL::new();
+    <span class="kw">let </span>grammar = <span class="string">r#"
+        grammar Calculator {
+            expr: term (('+' | '-') term)*;
+            term: factor (('*' | '/') factor)*;
+            factor: number | '(' expr ')';
+            number: [0-9]+;
+        }
+    "#</span>;
+ 
+    <span class="kw">let </span>rust_code = rl.compile_grammar_to_rust(grammar)<span class="question-mark">?</span>;
+    rust_code.write_to_directory(Path::new(<span class="string">"generated_parser"</span>))<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="ai_enhancement/index.html" title="mod rl::ai_enhancement">ai_<wbr>enhancement</a></div><div class="desc docblock-short">RL AI增强模块</div></li><li><div class="item-name"><a class="mod" href="ast/index.html" title="mod rl::ast">ast</a></div><div class="desc docblock-short">AST模块</div></li><li><div class="item-name"><a class="mod" href="codegen/index.html" title="mod rl::codegen">codegen</a></div><div class="desc docblock-short">代码生成模块</div></li><li><div class="item-name"><a class="mod" href="error/index.html" title="mod rl::error">error</a></div><div class="desc docblock-short">错误处理模块</div></li><li><div class="item-name"><a class="mod" href="knowledge_graph/index.html" title="mod rl::knowledge_graph">knowledge_<wbr>graph</a></div><div class="desc docblock-short">RL知识图谱增强模块</div></li><li><div class="item-name"><a class="mod" href="parser/index.html" title="mod rl::parser">parser</a></div><div class="desc docblock-short">解析器模块</div></li><li><div class="item-name"><a class="mod" href="performance/index.html" title="mod rl::performance">performance</a></div><div class="desc docblock-short">RL性能优化模块</div></li><li><div class="item-name"><a class="mod" href="tools/index.html" title="mod rl::tools">tools</a></div><div class="desc docblock-short">工具模块</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.RL.html" title="struct rl::RL">RL</a></div><div class="desc docblock-short">RL主入口</div></li></ul></section></div></main></body></html>

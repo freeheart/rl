@@ -1,0 +1,824 @@
+// CYPHER 25语法定义 - 基于Neo4j官方文档最新标准
+// 参考: https://neo4j.com/docs/cypher-cheat-sheet/25/all/
+// 用于测试RL解析器生成器
+
+grammar Cypher25 {
+    // 查询语句结构 - 基于官方文档
+    query: [USE database_name] 
+           [MATCH [WHERE]] 
+           [OPTIONAL MATCH [WHERE]] 
+           [WITH [ORDER BY] [SKIP] [LIMIT] [WHERE]] 
+           RETURN [ORDER BY] [SKIP] [LIMIT];
+
+    // 语句类型
+    statement: read_statement | write_statement | schema_statement | admin_statement | system_statement;
+    
+    // 读取语句
+    read_statement: match_statement | optional_match_statement | return_statement | with_statement | unwind_statement | call_statement | load_statement | explain_statement | profile_statement | show_statement;
+    
+    // 写入语句
+    write_statement: create_statement | merge_statement | delete_statement | set_statement | remove_statement | foreach_statement | finish_statement;
+    
+    // 模式语句
+    schema_statement: create_constraint_statement | drop_constraint_statement | create_index_statement | drop_index_statement;
+    
+    // 管理语句
+    admin_statement: create_user_statement | drop_user_statement | alter_user_statement | show_users_statement | create_role_statement | drop_role_statement | alter_role_statement | show_roles_statement | grant_privilege_statement | deny_privilege_statement | revoke_privilege_statement | show_privileges_statement;
+    
+    // 系统语句
+    system_statement: use_statement | create_database_statement | drop_database_statement | alter_database_statement | show_databases_statement | create_alias_statement | drop_alias_statement | alter_alias_statement | show_aliases_statement;
+
+    // USE子句
+    use_statement: USE database_name;
+    database_name: identifier | string_literal;
+
+    // MATCH子句
+    match_statement: MATCH pattern [WHERE expression] [return_clause];
+    optional_match_statement: OPTIONAL MATCH pattern [WHERE expression] [return_clause];
+    
+    // 模式定义
+    pattern: node_pattern | relationship_pattern | path_pattern | shortest_path_pattern | all_shortest_path_pattern | shortest_groups_pattern;
+    node_pattern: '(' [variable] [label_list] [property_map] ')';
+    relationship_pattern: '[' [variable] [relationship_type_list] [property_map] [range_literal] ']';
+    path_pattern: node_pattern relationship_pattern node_pattern;
+    
+    // SHORTEST路径模式 (CYPHER 25新特性)
+    shortest_path_pattern: 'SHORTEST' [integer_literal] '(' node_pattern relationship_pattern+ node_pattern ')';
+    all_shortest_path_pattern: 'ALL' 'SHORTEST' '(' node_pattern relationship_pattern+ node_pattern ')';
+    shortest_groups_pattern: 'SHORTEST' integer_literal 'GROUPS' '(' node_pattern relationship_pattern+ node_pattern ')';
+    
+    // 标签和类型
+    label_list: ':' label (':' label)*;
+    relationship_type_list: ':' relationship_type ('|' relationship_type)*;
+    label: identifier;
+    relationship_type: identifier;
+    
+    // 属性映射
+    property_map: '{' property_key_value (',' property_key_value)* '}';
+    property_key_value: property_key ':' expression;
+    property_key: identifier | string_literal;
+    
+    // 范围字面量
+    range_literal: '*' [integer_literal] [',' [integer_literal]];
+    
+    // WHERE子句
+    where_clause: WHERE expression;
+    
+    // FILTER子句 (CYPHER 25新特性)
+    filter_clause: FILTER expression;
+    
+    // 增强的FILTER子句 - 支持复杂过滤
+    enhanced_filter_clause: FILTER filter_condition ('AND' filter_condition)*;
+    filter_condition: expression | property_filter | type_filter | null_filter;
+    property_filter: property_expression comparison_operator expression;
+    type_filter: expression 'IS' '::' type_specification;
+    null_filter: expression 'IS' 'NULL' | expression 'IS' 'NOT' 'NULL';
+    type_specification: type_name | union_type;
+    type_name: 'INTEGER' | 'FLOAT' | 'STRING' | 'BOOLEAN' | 'DATE' | 'DATETIME' | 'POINT' | 'DURATION';
+    union_type: type_name ('|' type_name)+;
+    
+    // RETURN子句
+    return_statement: RETURN [DISTINCT] return_items [order_clause] [skip_clause] [limit_clause];
+    return_items: '*' | return_item (',' return_item)*;
+    return_item: expression [AS alias];
+    
+    // WITH子句
+    with_statement: WITH [DISTINCT] return_items [WHERE expression] [order_clause] [skip_clause] [limit_clause];
+    
+    // UNWIND子句
+    unwind_statement: UNWIND expression AS variable;
+    
+    // CALL子句
+    call_statement: CALL procedure_name '(' [expression (',' expression)*] ')' [YIELD yield_items] [WHERE expression];
+    procedure_name: namespace '.' procedure_name | identifier;
+    namespace: identifier;
+    yield_items: yield_item (',' yield_item)*;
+    yield_item: identifier [AS alias];
+    
+    // LOAD子句
+    load_statement: LOAD CSV [WITH HEADERS] FROM string_literal AS variable [WHERE expression];
+    
+    // CREATE子句
+    create_statement: CREATE pattern;
+    
+    // MERGE子句
+    merge_statement: MERGE pattern [ON CREATE set_clause] [ON MATCH set_clause];
+    
+    // DELETE子句
+    delete_statement: DELETE [DETACH] expression (',' expression)*;
+    
+    // SET子句
+    set_statement: SET set_item (',' set_item)*;
+    set_item: property_expression '=' expression 
+            | variable '=' expression 
+            | variable '+=' expression 
+            | variable '|=' expression;
+    
+    // REMOVE子句
+    remove_statement: REMOVE remove_item (',' remove_item)*;
+    remove_item: property_expression | label_expression;
+    label_expression: variable ':' label;
+    
+    // FOREACH子句
+    foreach_statement: FOREACH '(' variable IN expression '|' foreach_action ')';
+    foreach_action: create_action | merge_action | delete_action | set_action | remove_action;
+    create_action: CREATE pattern;
+    merge_action: MERGE pattern;
+    delete_action: DELETE [DETACH] expression;
+    set_action: SET set_item (',' set_item)*;
+    remove_action: REMOVE remove_item (',' remove_item)*;
+    
+    // ORDER BY子句
+    order_clause: ORDER BY sort_item (',' sort_item)*;
+    sort_item: expression [ASC | DESC];
+    
+    // SKIP子句
+    skip_clause: SKIP expression;
+    
+    // LIMIT子句
+    limit_clause: LIMIT expression;
+    
+    // 表达式
+    expression: or_expression;
+    or_expression: xor_expression ('OR' xor_expression)*;
+    xor_expression: and_expression ('XOR' and_expression)*;
+    and_expression: not_expression ('AND' not_expression)*;
+    not_expression: 'NOT' not_expression | comparison_expression;
+    comparison_expression: add_expression (comparison_operator add_expression)*;
+    comparison_operator: '=' | '<>' | '<' | '>' | '<=' | '>=' | 'IS' 'NULL' | 'IS' 'NOT' 'NULL' | '=~' | 'IN' | 'STARTS' 'WITH' | 'ENDS' 'WITH' | 'CONTAINS';
+    add_expression: multiply_expression (add_operator multiply_expression)*;
+    add_operator: '+' | '-' | '+';
+    multiply_expression: power_expression (multiply_operator power_expression)*;
+    multiply_operator: '*' | '/' | '%';
+    power_expression: unary_expression ('^' unary_expression)*;
+    unary_expression: ('+' | '-') unary_expression | postfix_expression;
+    postfix_expression: primary_expression (property_lookup | bracket_expression | function_invocation)*;
+    property_lookup: '.' property_key;
+    bracket_expression: '[' expression ']';
+    function_invocation: function_name '(' [expression (',' expression)*] ')';
+    function_name: namespace '.' function_name | identifier;
+    primary_expression: literal | parameter | case_expression | list_comprehension | pattern_comprehension | filter_expression | reduce_expression | all_expression | any_expression | none_expression | single_expression | exists_expression | when_expression | next_expression | let_expression | variable | parenthesized_expression;
+    
+    // 字面量
+    literal: boolean_literal | integer_literal | float_literal | string_literal | null_literal | list_literal | map_literal;
+    boolean_literal: 'true' | 'false';
+    integer_literal: [0-9]+;
+    float_literal: [0-9]+ '.' [0-9]+ ([eE] [+-]? [0-9]+)?;
+    string_literal: '"' [^"]* '"' | "'" [^']* "'";
+    null_literal: 'null';
+    list_literal: '[' [expression (',' expression)*] ']';
+    map_literal: '{' [property_key_value (',' property_key_value)*] '}';
+    
+    // 参数
+    parameter: '$' identifier;
+    
+    // CASE表达式
+    case_expression: 'CASE' [expression] (when_then)+ [else_clause] 'END';
+    when_then: 'WHEN' expression 'THEN' expression;
+    else_clause: 'ELSE' expression;
+    
+    // 列表推导
+    list_comprehension: '[' expression [WHERE expression] '|' expression ']';
+    
+    // 模式推导
+    pattern_comprehension: '[' [variable] pattern [WHERE expression] '|' expression ']';
+    
+    // 过滤表达式
+    filter_expression: expression '[' [expression] ']';
+    
+    // 归约表达式
+    reduce_expression: 'reduce' '(' variable '=' expression ',' variable 'IN' expression '|' expression ')';
+    
+    // 量词表达式
+    all_expression: 'all' '(' variable 'IN' expression 'WHERE' expression ')';
+    any_expression: 'any' '(' variable 'IN' expression 'WHERE' expression ')';
+    none_expression: 'none' '(' variable 'IN' expression 'WHERE' expression ')';
+    single_expression: 'single' '(' variable 'IN' expression 'WHERE' expression ')';
+    
+    // 存在表达式
+    exists_expression: 'exists' '(' pattern [WHERE expression] ')';
+    
+    // 变量
+    variable: identifier;
+    
+    // 括号表达式
+    parenthesized_expression: '(' expression ')';
+    
+    // 属性表达式
+    property_expression: variable '.' property_key;
+    
+    // 标识符
+    identifier: [a-zA-Z_][a-zA-Z0-9_]*;
+    
+    // 约束语句
+    create_constraint_statement: CREATE [CONSTRAINT] [IF NOT EXISTS] constraint_name constraint_type '(' variable property_key ')' [OPTIONS options_map];
+    drop_constraint_statement: DROP [CONSTRAINT] [IF EXISTS] constraint_name;
+    constraint_name: identifier;
+    constraint_type: 'UNIQUE' | 'NOT NULL' | 'EXISTS' | 'NODE KEY' | 'RELATIONSHIP KEY' | 'NODE PROPERTY EXISTENCE' | 'RELATIONSHIP PROPERTY EXISTENCE';
+    options_map: '{' property_key_value (',' property_key_value)* '}';
+    
+    // 索引语句
+    create_index_statement: CREATE [INDEX] [IF NOT EXISTS] [index_name] [FOR] '(' variable ')' [ON] '(' property_key (',' property_key)* ')' [OPTIONS options_map];
+    drop_index_statement: DROP [INDEX] [IF EXISTS] index_name;
+    index_name: identifier;
+    
+    // 用户管理语句
+    create_user_statement: CREATE USER user_name [IF NOT EXISTS] [SET PASSWORD password] [SET HOME DATABASE database_name] [SET STATUS status] [SET AUTH PROVIDER auth_provider];
+    drop_user_statement: DROP USER user_name [IF EXISTS];
+    alter_user_statement: ALTER USER user_name [SET PASSWORD password] [SET HOME DATABASE database_name] [SET STATUS status] [SET AUTH PROVIDER auth_provider];
+    show_users_statement: SHOW USERS;
+    user_name: identifier;
+    password: string_literal;
+    status: 'ACTIVE' | 'SUSPENDED';
+    auth_provider: 'NATIVE' | 'LDAP' | 'SAML' | 'OIDC';
+    
+    // 角色管理语句
+    create_role_statement: CREATE ROLE role_name [IF NOT EXISTS];
+    drop_role_statement: DROP ROLE role_name [IF EXISTS];
+    alter_role_statement: ALTER ROLE role_name [SET NAME new_role_name];
+    show_roles_statement: SHOW ROLES;
+    role_name: identifier;
+    new_role_name: identifier;
+    
+    // 权限管理语句
+    grant_privilege_statement: GRANT privilege_type [ON] scope TO role_name;
+    deny_privilege_statement: DENY privilege_type [ON] scope TO role_name;
+    revoke_privilege_statement: REVOKE privilege_type [ON] scope FROM role_name;
+    show_privileges_statement: SHOW PRIVILEGES [AS COMMANDS] [YIELD yield_items] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    privilege_type: 'ALL' | 'READ' | 'WRITE' | 'CREATE' | 'DELETE' | 'SET' | 'REMOVE' | 'MERGE' | 'MATCH' | 'EXECUTE' | 'ADMIN' | 'DBMS' | 'DATABASE' | 'GRAPH' | 'USER' | 'ROLE' | 'PRIVILEGE' | 'ALIAS' | 'SERVER' | 'COMPOSITE DATABASE' | 'CREATE USER' | 'DROP USER' | 'ALTER USER' | 'SHOW USER' | 'SET PASSWORD' | 'SET AUTH' | 'SET USER HOME DATABASE' | 'SET USER STATUS' | 'CREATE ROLE' | 'DROP ROLE' | 'ALTER ROLE' | 'SHOW ROLE' | 'ASSIGN ROLE' | 'REMOVE ROLE' | 'CREATE DATABASE' | 'DROP DATABASE' | 'ALTER DATABASE' | 'SHOW DATABASE' | 'SET DATABASE ACCESS' | 'CREATE ALIAS' | 'DROP ALIAS' | 'ALTER ALIAS' | 'SHOW ALIAS' | 'CREATE COMPOSITE DATABASE' | 'DROP COMPOSITE DATABASE' | 'SHOW SERVERS' | 'ENABLE SERVER' | 'RENAME SERVER' | 'ALTER SERVER' | 'REALLOCATE SERVER' | 'DEALLOCATE SERVER' | 'DROP SERVER';
+    scope: 'DBMS' | 'DATABASE' database_name | 'GRAPH' graph_name | 'USER' user_name | 'ROLE' role_name | 'ALIAS' alias_name | 'SERVER' server_name;
+    graph_name: identifier;
+    alias_name: identifier;
+    server_name: identifier;
+    
+    // 数据库管理语句
+    create_database_statement: CREATE DATABASE database_name [IF NOT EXISTS] [OPTIONS options_map];
+    drop_database_statement: DROP DATABASE database_name [IF EXISTS];
+    alter_database_statement: ALTER DATABASE database_name [SET ACCESS access_mode] [SET OPTIONS options_map];
+    show_databases_statement: SHOW DATABASES [YIELD yield_items] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    access_mode: 'READ' | 'WRITE';
+    
+    // 别名管理语句
+    create_alias_statement: CREATE ALIAS alias_name [IF NOT EXISTS] [FOR DATABASE database_name] [AT location];
+    drop_alias_statement: DROP ALIAS alias_name [IF EXISTS];
+    alter_alias_statement: ALTER ALIAS alias_name [SET DATABASE database_name] [SET AT location];
+    show_aliases_statement: SHOW ALIASES [FOR DATABASE database_name] [YIELD yield_items] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    location: string_literal;
+    
+    // 解释和性能分析语句
+    explain_statement: EXPLAIN [ANALYZE] statement;
+    profile_statement: PROFILE statement;
+    
+    // 显示语句
+    show_statement: SHOW [CONSTRAINTS | INDEXES | PROCEDURES | FUNCTIONS | TRANSACTIONS | CONNECTIONS] [YIELD yield_items] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    
+    // 动态标签和关系类型 (CYPHER 25新特性)
+    dynamic_label: '$(' expression ')';
+    dynamic_relationship_type: '$(' expression ')';
+    
+    // 模式理解中的WHERE子句 (CYPHER 25新特性)
+    pattern_where: WHERE expression;
+    
+    // 固定长度模式中的WHERE子句 (CYPHER 25新特性)
+    fixed_length_pattern: node_pattern relationship_pattern node_pattern [WHERE expression];
+    
+    // 变长模式中的WHERE子句 (CYPHER 25新特性)
+    variable_length_pattern: node_pattern relationship_pattern '{' integer_literal ',' integer_literal '}' node_pattern [WHERE expression];
+    
+    // 模式理解中的动态标签 (CYPHER 25新特性)
+    pattern_comprehension_with_dynamic_label: '[' [variable] dynamic_label [WHERE expression] '|' expression ']';
+    
+    // 动态属性访问 (CYPHER 25新特性)
+    dynamic_property_access: variable '[' expression ']';
+    
+    // 动态标签过滤 (CYPHER 25新特性)
+    dynamic_label_filter: variable ':' dynamic_label;
+    
+    // 动态关系类型过滤 (CYPHER 25新特性)
+    dynamic_relationship_type_filter: '[' variable ':' dynamic_relationship_type ']';
+    
+    // 模式理解中的动态关系类型 (CYPHER 25新特性)
+    pattern_comprehension_with_dynamic_relationship: '[' [variable] relationship_pattern [WHERE expression] '|' expression ']';
+    
+    // 动态模式匹配 (CYPHER 25新特性)
+    dynamic_pattern: node_pattern dynamic_relationship_type_filter node_pattern;
+    
+    // 动态标签模式 (CYPHER 25新特性)
+    dynamic_label_pattern: '(' [variable] dynamic_label [property_map] ')';
+    
+    // 动态关系模式 (CYPHER 25新特性)
+    dynamic_relationship_pattern: '[' [variable] dynamic_relationship_type [property_map] [range_literal] ']';
+    
+    // 动态路径模式 (CYPHER 25新特性)
+    dynamic_path_pattern: dynamic_label_pattern dynamic_relationship_pattern dynamic_label_pattern;
+    
+    // 动态模式匹配语句 (CYPHER 25新特性)
+    dynamic_match_statement: MATCH dynamic_pattern [WHERE expression] [return_clause];
+    dynamic_optional_match_statement: OPTIONAL MATCH dynamic_pattern [WHERE expression] [return_clause];
+    
+    // 动态模式创建语句 (CYPHER 25新特性)
+    dynamic_create_statement: CREATE dynamic_pattern;
+    dynamic_merge_statement: MERGE dynamic_pattern [ON CREATE set_clause] [ON MATCH set_clause];
+    
+    // 动态模式删除语句 (CYPHER 25新特性)
+    dynamic_delete_statement: DELETE [DETACH] dynamic_pattern;
+    
+    // 动态模式设置语句 (CYPHER 25新特性)
+    dynamic_set_statement: SET dynamic_property_access '=' expression;
+    
+    // 动态模式移除语句 (CYPHER 25新特性)
+    dynamic_remove_statement: REMOVE dynamic_property_access | dynamic_label_filter;
+    
+    // 动态模式返回语句 (CYPHER 25新特性)
+    dynamic_return_statement: RETURN [DISTINCT] dynamic_return_items [order_clause] [skip_clause] [limit_clause];
+    dynamic_return_items: '*' | dynamic_return_item (',' dynamic_return_item)*;
+    dynamic_return_item: expression [AS alias] | dynamic_property_access [AS alias];
+    
+    // 动态模式WITH语句 (CYPHER 25新特性)
+    dynamic_with_statement: WITH [DISTINCT] dynamic_return_items [WHERE expression] [order_clause] [skip_clause] [limit_clause];
+    
+    // 动态模式UNWIND语句 (CYPHER 25新特性)
+    dynamic_unwind_statement: UNWIND expression AS variable;
+    
+    // 动态模式CALL语句 (CYPHER 25新特性)
+    dynamic_call_statement: CALL procedure_name '(' [expression (',' expression)*] ')' [YIELD yield_items] [WHERE expression];
+    
+    // 动态模式LOAD语句 (CYPHER 25新特性)
+    dynamic_load_statement: LOAD CSV [WITH HEADERS] FROM string_literal AS variable [WHERE expression];
+    
+    // 动态模式FOREACH语句 (CYPHER 25新特性)
+    dynamic_foreach_statement: FOREACH '(' variable IN expression '|' dynamic_foreach_action ')';
+    dynamic_foreach_action: dynamic_create_action | dynamic_merge_action | dynamic_delete_action | dynamic_set_action | dynamic_remove_action;
+    dynamic_create_action: CREATE dynamic_pattern;
+    dynamic_merge_action: MERGE dynamic_pattern;
+    dynamic_delete_action: DELETE [DETACH] dynamic_pattern;
+    dynamic_set_action: SET dynamic_property_access '=' expression;
+    dynamic_remove_action: REMOVE dynamic_property_access | dynamic_label_filter;
+    
+    // 动态模式约束语句 (CYPHER 25新特性)
+    dynamic_create_constraint_statement: CREATE [CONSTRAINT] [IF NOT EXISTS] constraint_name constraint_type '(' variable dynamic_property_access ')' [OPTIONS options_map];
+    dynamic_drop_constraint_statement: DROP [CONSTRAINT] [IF EXISTS] constraint_name;
+    
+    // 动态模式索引语句 (CYPHER 25新特性)
+    dynamic_create_index_statement: CREATE [INDEX] [IF NOT EXISTS] [index_name] [FOR] '(' variable ')' [ON] '(' dynamic_property_access (',' dynamic_property_access)* ')' [OPTIONS options_map];
+    dynamic_drop_index_statement: DROP [INDEX] [IF EXISTS] index_name;
+    
+    // 动态模式用户管理语句 (CYPHER 25新特性)
+    dynamic_create_user_statement: CREATE USER user_name [IF NOT EXISTS] [SET PASSWORD password] [SET HOME DATABASE database_name] [SET STATUS status] [SET AUTH PROVIDER auth_provider];
+    dynamic_drop_user_statement: DROP USER user_name [IF EXISTS];
+    dynamic_alter_user_statement: ALTER USER user_name [SET PASSWORD password] [SET HOME DATABASE database_name] [SET STATUS status] [SET AUTH PROVIDER auth_provider];
+    dynamic_show_users_statement: SHOW USERS;
+    
+    // 动态模式角色管理语句 (CYPHER 25新特性)
+    dynamic_create_role_statement: CREATE ROLE role_name [IF NOT EXISTS];
+    dynamic_drop_role_statement: DROP ROLE role_name [IF EXISTS];
+    dynamic_alter_role_statement: ALTER ROLE role_name [SET NAME new_role_name];
+    dynamic_show_roles_statement: SHOW ROLES;
+    
+    // 动态模式权限管理语句 (CYPHER 25新特性)
+    dynamic_grant_privilege_statement: GRANT privilege_type [ON] scope TO role_name;
+    dynamic_deny_privilege_statement: DENY privilege_type [ON] scope TO role_name;
+    dynamic_revoke_privilege_statement: REVOKE privilege_type [ON] scope FROM role_name;
+    dynamic_show_privileges_statement: SHOW PRIVILEGES [AS COMMANDS] [YIELD yield_items] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    
+    // 动态模式数据库管理语句 (CYPHER 25新特性)
+    dynamic_create_database_statement: CREATE DATABASE database_name [IF NOT EXISTS] [OPTIONS options_map];
+    dynamic_drop_database_statement: DROP DATABASE database_name [IF EXISTS];
+    dynamic_alter_database_statement: ALTER DATABASE database_name [SET ACCESS access_mode] [SET OPTIONS options_map];
+    dynamic_show_databases_statement: SHOW DATABASES [YIELD yield_items] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    
+    // 动态模式别名管理语句 (CYPHER 25新特性)
+    dynamic_create_alias_statement: CREATE ALIAS alias_name [IF NOT EXISTS] [FOR DATABASE database_name] [AT location];
+    dynamic_drop_alias_statement: DROP ALIAS alias_name [IF EXISTS];
+    dynamic_alter_alias_statement: ALTER ALIAS alias_name [SET DATABASE database_name] [SET AT location];
+    dynamic_show_aliases_statement: SHOW ALIASES [FOR DATABASE database_name] [YIELD yield_items] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    
+    // 动态模式解释和性能分析语句 (CYPHER 25新特性)
+    dynamic_explain_statement: EXPLAIN [ANALYZE] dynamic_statement;
+    dynamic_profile_statement: PROFILE dynamic_statement;
+    
+    // 动态模式显示语句 (CYPHER 25新特性)
+    dynamic_show_statement: SHOW [CONSTRAINTS | INDEXES | PROCEDURES | FUNCTIONS | TRANSACTIONS | CONNECTIONS] [YIELD yield_items] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    
+    // 动态语句
+    dynamic_statement: dynamic_read_statement | dynamic_write_statement | dynamic_schema_statement | dynamic_admin_statement | dynamic_system_statement;
+    
+    // 动态读取语句
+    dynamic_read_statement: dynamic_match_statement | dynamic_optional_match_statement | dynamic_return_statement | dynamic_with_statement | dynamic_unwind_statement | dynamic_call_statement | dynamic_load_statement | dynamic_explain_statement | dynamic_profile_statement | dynamic_show_statement;
+    
+    // 动态写入语句
+    dynamic_write_statement: dynamic_create_statement | dynamic_merge_statement | dynamic_delete_statement | dynamic_set_statement | dynamic_remove_statement | dynamic_foreach_statement;
+    
+    // 动态模式语句
+    dynamic_schema_statement: dynamic_create_constraint_statement | dynamic_drop_constraint_statement | dynamic_create_index_statement | dynamic_drop_index_statement;
+    
+    // 动态管理语句
+    dynamic_admin_statement: dynamic_create_user_statement | dynamic_drop_user_statement | dynamic_alter_user_statement | dynamic_show_users_statement | dynamic_create_role_statement | dynamic_drop_role_statement | dynamic_alter_role_statement | dynamic_show_roles_statement | dynamic_grant_privilege_statement | dynamic_deny_privilege_statement | dynamic_revoke_privilege_statement | dynamic_show_privileges_statement;
+    
+    // 动态系统语句
+    dynamic_system_statement: use_statement | dynamic_create_database_statement | dynamic_drop_database_statement | dynamic_alter_database_statement | dynamic_show_databases_statement | dynamic_create_alias_statement | dynamic_drop_alias_statement | dynamic_alter_alias_statement | dynamic_show_aliases_statement;
+    
+    // CYPHER 25 提升表达能力的新特性
+    
+    // WHEN表达式 - 条件表达式增强
+    when_expression: 'WHEN' condition_expression 'THEN' then_expression ('ELSE' else_expression)? 'END';
+    condition_expression: expression;
+    then_expression: expression;
+    else_expression: expression;
+    
+    // NEXT表达式 - 控制流和迭代
+    next_expression: 'NEXT' variable 'IN' iterable_expression 'DO' next_body 'END';
+    iterable_expression: expression | range_expression | list_expression;
+    range_expression: 'RANGE' '(' start_expression ',' end_expression [',' step_expression] ')';
+    start_expression: expression;
+    end_expression: expression;
+    step_expression: expression;
+    list_expression: '[' expression (',' expression)* ']';
+    next_body: statement | '{' statement* '}';
+    
+    // LET表达式 - 变量定义和赋值
+    let_expression: 'LET' let_binding (',' let_binding)* 'IN' let_body 'END';
+    let_binding: variable '=' expression;
+    let_body: expression | statement | '{' statement* '}';
+    
+    // 增强的WHEN子句 - 支持复杂条件
+    enhanced_when_clause: 'WHEN' when_condition ('AND' when_condition)* 'THEN' when_action;
+    when_condition: expression | pattern_condition | property_condition | relationship_condition;
+    pattern_condition: pattern [WHERE expression];
+    property_condition: property_expression comparison_operator expression;
+    relationship_condition: relationship_pattern [WHERE expression];
+    when_action: expression | statement | '{' statement* '}';
+    
+    // 增强的NEXT子句 - 支持复杂迭代
+    enhanced_next_clause: 'NEXT' next_variable 'IN' next_iterable ('WHERE' next_condition)? 'DO' next_action ('NEXT' next_variable 'IN' next_iterable ('WHERE' next_condition)? 'DO' next_action)* 'END';
+    next_variable: variable;
+    next_iterable: expression | range_expression | list_expression | pattern_expression;
+    next_condition: expression;
+    next_action: expression | statement | '{' statement* '}';
+    pattern_expression: pattern;
+    
+    // 增强的LET子句 - 支持复杂变量绑定
+    enhanced_let_clause: 'LET' let_binding (',' let_binding)* ('WHERE' let_condition)? 'IN' let_action 'END';
+    let_condition: expression;
+    let_action: expression | statement | '{' statement* '}';
+    
+    // 条件模式匹配 - WHEN与模式结合
+    conditional_pattern: 'WHEN' pattern_condition 'THEN' pattern_action ('ELSE' pattern_action)? 'END';
+    pattern_action: pattern | expression | statement;
+    
+    // 迭代模式匹配 - NEXT与模式结合
+    iterative_pattern: 'NEXT' pattern_variable 'IN' pattern_iterable ('WHERE' pattern_condition)? 'DO' pattern_action 'END';
+    pattern_variable: variable;
+    pattern_iterable: pattern | expression;
+    pattern_condition: expression;
+    
+    // 变量模式匹配 - LET与模式结合
+    variable_pattern: 'LET' pattern_binding (',' pattern_binding)* 'IN' pattern_action 'END';
+    pattern_binding: pattern_variable '=' pattern | variable '=' expression;
+    
+    // 复杂条件表达式
+    complex_condition: simple_condition | compound_condition | nested_condition;
+    simple_condition: expression;
+    compound_condition: '(' simple_condition ')' ('AND' | 'OR' | 'XOR') '(' simple_condition ')';
+    nested_condition: '(' complex_condition ')' ('AND' | 'OR' | 'XOR') '(' complex_condition ')';
+    
+    // 条件链表达式
+    condition_chain: condition_link ('AND' condition_link)*;
+    condition_link: expression | pattern_condition | property_condition | relationship_condition;
+    
+    // 增强的CASE表达式 - 支持WHEN
+    enhanced_case_expression: 'CASE' [expression] (enhanced_when_then)+ [else_clause] 'END';
+    enhanced_when_then: 'WHEN' complex_condition 'THEN' expression;
+    
+    // 增强的列表推导 - 支持WHEN和LET
+    enhanced_list_comprehension: '[' expression [enhanced_when_clause] [enhanced_let_clause] '|' expression ']';
+    
+    // 增强的模式推导 - 支持WHEN和LET
+    enhanced_pattern_comprehension: '[' [variable] pattern [enhanced_when_clause] [enhanced_let_clause] '|' expression ']';
+    
+    // 条件聚合 - 支持WHEN
+    conditional_aggregate: aggregate_function '(' expression [enhanced_when_clause] ')';
+    aggregate_function: 'count' | 'sum' | 'avg' | 'min' | 'max' | 'collect' | 'distinct';
+    
+    // 迭代聚合 - 支持NEXT
+    iterative_aggregate: 'NEXT' variable 'IN' iterable_expression 'COLLECT' collect_expression 'END';
+    collect_expression: expression;
+    
+    // 变量聚合 - 支持LET
+    variable_aggregate: 'LET' variable '=' aggregate_function '(' expression ')' 'IN' expression 'END';
+    
+    // 条件排序 - 支持WHEN
+    conditional_order: 'ORDER BY' order_item (',' order_item)* [enhanced_when_clause];
+    order_item: expression [ASC | DESC];
+    
+    // 迭代排序 - 支持NEXT
+    iterative_order: 'NEXT' variable 'IN' iterable_expression 'ORDER BY' order_item (',' order_item)* 'END';
+    
+    // 变量排序 - 支持LET
+    variable_order: 'LET' variable '=' expression 'ORDER BY' order_item (',' order_item)* 'IN' expression 'END';
+    
+    // 条件限制 - 支持WHEN
+    conditional_limit: 'LIMIT' expression [enhanced_when_clause];
+    
+    // 迭代限制 - 支持NEXT
+    iterative_limit: 'NEXT' variable 'IN' iterable_expression 'LIMIT' expression 'END';
+    
+    // 变量限制 - 支持LET
+    variable_limit: 'LET' variable '=' expression 'LIMIT' expression 'IN' expression 'END';
+    
+    // 条件跳过 - 支持WHEN
+    conditional_skip: 'SKIP' expression [enhanced_when_clause];
+    
+    // 迭代跳过 - 支持NEXT
+    iterative_skip: 'NEXT' variable 'IN' iterable_expression 'SKIP' expression 'END';
+    
+    // 变量跳过 - 支持LET
+    variable_skip: 'LET' variable '=' expression 'SKIP' expression 'IN' expression 'END';
+    
+    // 增强的查询结构 - 支持WHEN、NEXT、LET
+    enhanced_query: [USE database_name] 
+                   [enhanced_match_clause] 
+                   [enhanced_optional_match_clause] 
+                   [enhanced_with_clause] 
+                   enhanced_return_clause;
+    
+    enhanced_match_clause: 'MATCH' pattern [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [return_clause];
+    enhanced_optional_match_clause: 'OPTIONAL MATCH' pattern [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [return_clause];
+    enhanced_with_clause: 'WITH' [DISTINCT] return_items [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [order_clause] [skip_clause] [limit_clause];
+    enhanced_return_clause: 'RETURN' [DISTINCT] return_items [enhanced_when_clause] [enhanced_let_clause] [order_clause] [skip_clause] [limit_clause];
+    
+    // 增强的语句类型 - 支持新特性
+    enhanced_statement: enhanced_read_statement | enhanced_write_statement | enhanced_schema_statement | enhanced_admin_statement | enhanced_system_statement;
+    
+    enhanced_read_statement: enhanced_match_statement | enhanced_optional_match_statement | enhanced_return_statement | enhanced_with_statement | enhanced_unwind_statement | enhanced_call_statement | enhanced_load_statement | enhanced_explain_statement | enhanced_profile_statement | enhanced_show_statement;
+    
+    enhanced_write_statement: enhanced_create_statement | enhanced_merge_statement | enhanced_delete_statement | enhanced_set_statement | enhanced_remove_statement | enhanced_foreach_statement;
+    
+    enhanced_schema_statement: create_constraint_statement | drop_constraint_statement | create_index_statement | drop_index_statement;
+    
+    enhanced_admin_statement: create_user_statement | drop_user_statement | alter_user_statement | show_users_statement | create_role_statement | drop_role_statement | alter_role_statement | show_roles_statement | grant_privilege_statement | deny_privilege_statement | revoke_privilege_statement | show_privileges_statement;
+    
+    enhanced_system_statement: use_statement | create_database_statement | drop_database_statement | alter_database_statement | show_databases_statement | create_alias_statement | drop_alias_statement | alter_alias_statement | show_aliases_statement;
+    
+    // 增强的MATCH语句
+    enhanced_match_statement: 'MATCH' pattern [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [return_clause];
+    
+    // 增强的OPTIONAL MATCH语句
+    enhanced_optional_match_statement: 'OPTIONAL MATCH' pattern [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [return_clause];
+    
+    // 增强的RETURN语句
+    enhanced_return_statement: 'RETURN' [DISTINCT] return_items [enhanced_when_clause] [enhanced_let_clause] [order_clause] [skip_clause] [limit_clause];
+    
+    // 增强的WITH语句
+    enhanced_with_statement: 'WITH' [DISTINCT] return_items [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [order_clause] [skip_clause] [limit_clause];
+    
+    // 增强的UNWIND语句
+    enhanced_unwind_statement: 'UNWIND' expression [enhanced_when_clause] [enhanced_let_clause] 'AS' variable;
+    
+    // 增强的CALL语句
+    enhanced_call_statement: 'CALL' procedure_name '(' [expression (',' expression)*] ')' [YIELD yield_items] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression];
+    
+    // 增强的LOAD语句
+    enhanced_load_statement: 'LOAD CSV' [WITH HEADERS] FROM string_literal [enhanced_when_clause] [enhanced_let_clause] 'AS' variable [WHERE expression];
+    
+    // 增强的CREATE语句
+    enhanced_create_statement: 'CREATE' pattern [enhanced_when_clause] [enhanced_let_clause];
+    
+    // 增强的MERGE语句
+    enhanced_merge_statement: 'MERGE' pattern [enhanced_when_clause] [enhanced_let_clause] [ON CREATE set_clause] [ON MATCH set_clause];
+    
+    // 增强的DELETE语句
+    enhanced_delete_statement: 'DELETE' [DETACH] expression [enhanced_when_clause] [enhanced_let_clause] (',' expression)*;
+    
+    // 增强的SET语句
+    enhanced_set_statement: 'SET' set_item [enhanced_when_clause] [enhanced_let_clause] (',' set_item)*;
+    
+    // 增强的REMOVE语句
+    enhanced_remove_statement: 'REMOVE' remove_item [enhanced_when_clause] [enhanced_let_clause] (',' remove_item)*;
+    
+    // 增强的FOREACH语句
+    enhanced_foreach_statement: 'FOREACH' '(' variable 'IN' expression [enhanced_when_clause] [enhanced_let_clause] '|' foreach_action ')';
+    
+    // 增强的EXPLAIN语句
+    enhanced_explain_statement: 'EXPLAIN' [ANALYZE] enhanced_statement;
+    
+    // 增强的PROFILE语句
+    enhanced_profile_statement: 'PROFILE' enhanced_statement;
+    
+    // 增强的SHOW语句
+    enhanced_show_statement: 'SHOW' [CONSTRAINTS | INDEXES | PROCEDURES | FUNCTIONS | TRANSACTIONS | CONNECTIONS] [YIELD yield_items] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    
+    // FINISH语句 (CYPHER 25新特性)
+    finish_statement: 'FINISH';
+    
+    // 增强的DELETE语句 - 支持FINISH
+    enhanced_delete_with_finish: 'DELETE' [DETACH] expression (',' expression)* 'FINISH';
+    
+    // 增强的MATCH语句 - 支持FILTER
+    enhanced_match_with_filter: 'MATCH' pattern [enhanced_filter_clause] [WHERE expression] [return_clause];
+    
+    // 增强的OPTIONAL MATCH语句 - 支持FILTER
+    enhanced_optional_match_with_filter: 'OPTIONAL MATCH' pattern [enhanced_filter_clause] [WHERE expression] [return_clause];
+    
+    // 增强的RETURN语句 - 支持FILTER
+    enhanced_return_with_filter: 'RETURN' [DISTINCT] return_items [enhanced_filter_clause] [order_clause] [skip_clause] [limit_clause];
+    
+    // 增强的WITH语句 - 支持FILTER
+    enhanced_with_with_filter: 'WITH' [DISTINCT] return_items [enhanced_filter_clause] [WHERE expression] [order_clause] [skip_clause] [limit_clause];
+    
+    // 增强的UNWIND语句 - 支持FILTER
+    enhanced_unwind_with_filter: 'UNWIND' expression [enhanced_filter_clause] 'AS' variable;
+    
+    // 增强的CALL语句 - 支持FILTER
+    enhanced_call_with_filter: 'CALL' procedure_name '(' [expression (',' expression)*] ')' [YIELD yield_items] [enhanced_filter_clause] [WHERE expression];
+    
+    // 增强的LOAD语句 - 支持FILTER
+    enhanced_load_with_filter: 'LOAD CSV' [WITH HEADERS] FROM string_literal [enhanced_filter_clause] 'AS' variable [WHERE expression];
+    
+    // 增强的CREATE语句 - 支持FILTER
+    enhanced_create_with_filter: 'CREATE' pattern [enhanced_filter_clause];
+    
+    // 增强的MERGE语句 - 支持FILTER
+    enhanced_merge_with_filter: 'MERGE' pattern [enhanced_filter_clause] [ON CREATE set_clause] [ON MATCH set_clause];
+    
+    // 增强的SET语句 - 支持FILTER
+    enhanced_set_with_filter: 'SET' set_item [enhanced_filter_clause] (',' set_item)*;
+    
+    // 增强的REMOVE语句 - 支持FILTER
+    enhanced_remove_with_filter: 'REMOVE' remove_item [enhanced_filter_clause] (',' remove_item)*;
+    
+    // 增强的FOREACH语句 - 支持FILTER
+    enhanced_foreach_with_filter: 'FOREACH' '(' variable 'IN' expression [enhanced_filter_clause] '|' foreach_action ')';
+    
+    // 增强的EXPLAIN语句 - 支持FILTER
+    enhanced_explain_with_filter: 'EXPLAIN' [ANALYZE] enhanced_statement_with_filter;
+    
+    // 增强的PROFILE语句 - 支持FILTER
+    enhanced_profile_with_filter: 'PROFILE' enhanced_statement_with_filter;
+    
+    // 增强的SHOW语句 - 支持FILTER
+    enhanced_show_with_filter: 'SHOW' [CONSTRAINTS | INDEXES | PROCEDURES | FUNCTIONS | TRANSACTIONS | CONNECTIONS] [YIELD yield_items] [enhanced_filter_clause] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    
+    // 支持FILTER的增强语句
+    enhanced_statement_with_filter: enhanced_read_statement_with_filter | enhanced_write_statement_with_filter | enhanced_schema_statement | enhanced_admin_statement | enhanced_system_statement;
+    
+    enhanced_read_statement_with_filter: enhanced_match_with_filter | enhanced_optional_match_with_filter | enhanced_return_with_filter | enhanced_with_with_filter | enhanced_unwind_with_filter | enhanced_call_with_filter | enhanced_load_with_filter | enhanced_explain_with_filter | enhanced_profile_with_filter | enhanced_show_with_filter;
+    
+    enhanced_write_statement_with_filter: enhanced_create_with_filter | enhanced_merge_with_filter | enhanced_delete_with_finish | enhanced_set_with_filter | enhanced_remove_with_filter | enhanced_foreach_with_filter;
+    
+    // 增强的查询结构 - 支持FILTER和FINISH
+    enhanced_query_with_filter: [USE database_name] 
+                               [enhanced_match_with_filter] 
+                               [enhanced_optional_match_with_filter] 
+                               [enhanced_with_with_filter] 
+                               enhanced_return_with_filter
+                               [finish_statement];
+    
+    // 增强的查询结构 - 支持所有新特性
+    enhanced_query_complete: [USE database_name] 
+                            [enhanced_match_with_filter] 
+                            [enhanced_optional_match_with_filter] 
+                            [enhanced_with_with_filter] 
+                            enhanced_return_with_filter
+                            [finish_statement];
+    
+    // 增强的语句类型 - 支持所有新特性
+    enhanced_statement_complete: enhanced_read_statement_with_filter | enhanced_write_statement_with_filter | enhanced_schema_statement | enhanced_admin_statement | enhanced_system_statement;
+    
+    // 增强的读取语句 - 支持所有新特性
+    enhanced_read_statement_complete: enhanced_match_with_filter | enhanced_optional_match_with_filter | enhanced_return_with_filter | enhanced_with_with_filter | enhanced_unwind_with_filter | enhanced_call_with_filter | enhanced_load_with_filter | enhanced_explain_with_filter | enhanced_profile_with_filter | enhanced_show_with_filter;
+    
+    // 增强的写入语句 - 支持所有新特性
+    enhanced_write_statement_complete: enhanced_create_with_filter | enhanced_merge_with_filter | enhanced_delete_with_finish | enhanced_set_with_filter | enhanced_remove_with_filter | enhanced_foreach_with_filter;
+    
+    // 增强的模式语句 - 支持所有新特性
+    enhanced_schema_statement_complete: create_constraint_statement | drop_constraint_statement | create_index_statement | drop_index_statement;
+    
+    // 增强的管理语句 - 支持所有新特性
+    enhanced_admin_statement_complete: create_user_statement | drop_user_statement | alter_user_statement | show_users_statement | create_role_statement | drop_role_statement | alter_role_statement | show_roles_statement | grant_privilege_statement | deny_privilege_statement | revoke_privilege_statement | show_privileges_statement;
+    
+    // 增强的系统语句 - 支持所有新特性
+    enhanced_system_statement_complete: use_statement | create_database_statement | drop_database_statement | alter_database_statement | show_databases_statement | create_alias_statement | drop_alias_statement | alter_alias_statement | show_aliases_statement;
+    
+    // 增强的MATCH语句 - 支持所有新特性
+    enhanced_match_complete: 'MATCH' pattern [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [return_clause];
+    
+    // 增强的OPTIONAL MATCH语句 - 支持所有新特性
+    enhanced_optional_match_complete: 'OPTIONAL MATCH' pattern [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [return_clause];
+    
+    // 增强的RETURN语句 - 支持所有新特性
+    enhanced_return_complete: 'RETURN' [DISTINCT] return_items [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [order_clause] [skip_clause] [limit_clause];
+    
+    // 增强的WITH语句 - 支持所有新特性
+    enhanced_with_complete: 'WITH' [DISTINCT] return_items [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [order_clause] [skip_clause] [limit_clause];
+    
+    // 增强的UNWIND语句 - 支持所有新特性
+    enhanced_unwind_complete: 'UNWIND' expression [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] 'AS' variable;
+    
+    // 增强的CALL语句 - 支持所有新特性
+    enhanced_call_complete: 'CALL' procedure_name '(' [expression (',' expression)*] ')' [YIELD yield_items] [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression];
+    
+    // 增强的LOAD语句 - 支持所有新特性
+    enhanced_load_complete: 'LOAD CSV' [WITH HEADERS] FROM string_literal [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] 'AS' variable [WHERE expression];
+    
+    // 增强的CREATE语句 - 支持所有新特性
+    enhanced_create_complete: 'CREATE' pattern [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause];
+    
+    // 增强的MERGE语句 - 支持所有新特性
+    enhanced_merge_complete: 'MERGE' pattern [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [ON CREATE set_clause] [ON MATCH set_clause];
+    
+    // 增强的DELETE语句 - 支持所有新特性
+    enhanced_delete_complete: 'DELETE' [DETACH] expression [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] (',' expression)* [finish_statement];
+    
+    // 增强的SET语句 - 支持所有新特性
+    enhanced_set_complete: 'SET' set_item [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] (',' set_item)*;
+    
+    // 增强的REMOVE语句 - 支持所有新特性
+    enhanced_remove_complete: 'REMOVE' remove_item [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] (',' remove_item)*;
+    
+    // 增强的FOREACH语句 - 支持所有新特性
+    enhanced_foreach_complete: 'FOREACH' '(' variable 'IN' expression [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] '|' foreach_action ')';
+    
+    // 增强的EXPLAIN语句 - 支持所有新特性
+    enhanced_explain_complete: 'EXPLAIN' [ANALYZE] enhanced_statement_complete;
+    
+    // 增强的PROFILE语句 - 支持所有新特性
+    enhanced_profile_complete: 'PROFILE' enhanced_statement_complete;
+    
+    // 增强的SHOW语句 - 支持所有新特性
+    enhanced_show_complete: 'SHOW' [CONSTRAINTS | INDEXES | PROCEDURES | FUNCTIONS | TRANSACTIONS | CONNECTIONS] [YIELD yield_items] [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+    
+    // 最终增强的查询结构 - 支持所有新特性
+    enhanced_query_final: [USE database_name] 
+                         [enhanced_match_complete] 
+                         [enhanced_optional_match_complete] 
+                         [enhanced_with_complete] 
+                         enhanced_return_complete
+                         [finish_statement];
+    
+    // 最终增强的语句类型 - 支持所有新特性
+    enhanced_statement_final: enhanced_read_statement_complete | enhanced_write_statement_complete | enhanced_schema_statement_complete | enhanced_admin_statement_complete | enhanced_system_statement_complete;
+    
+    // 最终增强的读取语句 - 支持所有新特性
+    enhanced_read_statement_final: enhanced_match_complete | enhanced_optional_match_complete | enhanced_return_complete | enhanced_with_complete | enhanced_unwind_complete | enhanced_call_complete | enhanced_load_complete | enhanced_explain_complete | enhanced_profile_complete | enhanced_show_complete;
+    
+    // 最终增强的写入语句 - 支持所有新特性
+    enhanced_write_statement_final: enhanced_create_complete | enhanced_merge_complete | enhanced_delete_complete | enhanced_set_complete | enhanced_remove_complete | enhanced_foreach_complete;
+    
+    // 最终增强的模式语句 - 支持所有新特性
+    enhanced_schema_statement_final: create_constraint_statement | drop_constraint_statement | create_index_statement | drop_index_statement;
+    
+    // 最终增强的管理语句 - 支持所有新特性
+    enhanced_admin_statement_final: create_user_statement | drop_user_statement | alter_user_statement | show_users_statement | create_role_statement | drop_role_statement | alter_role_statement | show_roles_statement | grant_privilege_statement | deny_privilege_statement | revoke_privilege_statement | show_privileges_statement;
+    
+    // 最终增强的系统语句 - 支持所有新特性
+    enhanced_system_statement_final: use_statement | create_database_statement | drop_database_statement | alter_database_statement | show_databases_statement | create_alias_statement | drop_alias_statement | alter_alias_statement | show_aliases_statement;
+    
+    // 最终增强的MATCH语句 - 支持所有新特性
+    enhanced_match_final: 'MATCH' pattern [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [return_clause];
+    
+    // 最终增强的OPTIONAL MATCH语句 - 支持所有新特性
+    enhanced_optional_match_final: 'OPTIONAL MATCH' pattern [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [return_clause];
+    
+    // 最终增强的RETURN语句 - 支持所有新特性
+    enhanced_return_final: 'RETURN' [DISTINCT] return_items [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [order_clause] [skip_clause] [limit_clause];
+    
+    // 最终增强的WITH语句 - 支持所有新特性
+    enhanced_with_final: 'WITH' [DISTINCT] return_items [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [order_clause] [skip_clause] [limit_clause];
+    
+    // 最终增强的UNWIND语句 - 支持所有新特性
+    enhanced_unwind_final: 'UNWIND' expression [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] 'AS' variable;
+    
+    // 最终增强的CALL语句 - 支持所有新特性
+    enhanced_call_final: 'CALL' procedure_name '(' [expression (',' expression)*] ')' [YIELD yield_items] [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression];
+    
+    // 最终增强的LOAD语句 - 支持所有新特性
+    enhanced_load_final: 'LOAD CSV' [WITH HEADERS] FROM string_literal [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] 'AS' variable [WHERE expression];
+    
+    // 最终增强的CREATE语句 - 支持所有新特性
+    enhanced_create_final: 'CREATE' pattern [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause];
+    
+    // 最终增强的MERGE语句 - 支持所有新特性
+    enhanced_merge_final: 'MERGE' pattern [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [ON CREATE set_clause] [ON MATCH set_clause];
+    
+    // 最终增强的DELETE语句 - 支持所有新特性
+    enhanced_delete_final: 'DELETE' [DETACH] expression [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] (',' expression)* [finish_statement];
+    
+    // 最终增强的SET语句 - 支持所有新特性
+    enhanced_set_final: 'SET' set_item [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] (',' set_item)*;
+    
+    // 最终增强的REMOVE语句 - 支持所有新特性
+    enhanced_remove_final: 'REMOVE' remove_item [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] (',' remove_item)*;
+    
+    // 最终增强的FOREACH语句 - 支持所有新特性
+    enhanced_foreach_final: 'FOREACH' '(' variable 'IN' expression [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] '|' foreach_action ')';
+    
+    // 最终增强的EXPLAIN语句 - 支持所有新特性
+    enhanced_explain_final: 'EXPLAIN' [ANALYZE] enhanced_statement_final;
+    
+    // 最终增强的PROFILE语句 - 支持所有新特性
+    enhanced_profile_final: 'PROFILE' enhanced_statement_final;
+    
+    // 最终增强的SHOW语句 - 支持所有新特性
+    enhanced_show_final: 'SHOW' [CONSTRAINTS | INDEXES | PROCEDURES | FUNCTIONS | TRANSACTIONS | CONNECTIONS] [YIELD yield_items] [enhanced_filter_clause] [enhanced_when_clause] [enhanced_let_clause] [WHERE expression] [ORDER BY sort_item] [SKIP expression] [LIMIT expression];
+}

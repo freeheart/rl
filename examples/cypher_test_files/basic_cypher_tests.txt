@@ -1,0 +1,170 @@
+# 基础CYPHER语句测试文件
+# 包含100+个从最简单到中等复杂度的CYPHER语句
+
+# 1. 最简单的MATCH查询
+MATCH (n) RETURN n;
+MATCH (n:Person) RETURN n;
+MATCH (n:Person) RETURN n.name;
+MATCH (n:Person) RETURN n.name, n.age;
+
+# 2. 基础WHERE条件
+MATCH (n:Person) WHERE n.age > 18 RETURN n.name;
+MATCH (n:Person) WHERE n.age >= 21 AND n.age <= 65 RETURN n.name;
+MATCH (n:Person) WHERE n.name = 'Alice' RETURN n;
+MATCH (n:Person) WHERE n.name <> 'Bob' RETURN n.name;
+MATCH (n:Person) WHERE n.age IS NOT NULL RETURN n.name;
+MATCH (n:Person) WHERE n.age IS NULL RETURN n.name;
+
+# 3. 基础关系查询
+MATCH (a:Person)-[:KNOWS]->(b:Person) RETURN a.name, b.name;
+MATCH (a:Person)-[r:KNOWS]->(b:Person) RETURN a.name, r.since, b.name;
+MATCH (a:Person)-[r:KNOWS {since: 2020}]->(b:Person) RETURN a.name, b.name;
+MATCH (a:Person)-[:KNOWS*1..3]->(b:Person) RETURN a.name, b.name;
+
+# 4. 基础RETURN子句
+MATCH (n:Person) RETURN n;
+MATCH (n:Person) RETURN n.name AS personName;
+MATCH (n:Person) RETURN n.name, n.age ORDER BY n.age;
+MATCH (n:Person) RETURN n.name, n.age ORDER BY n.age DESC;
+MATCH (n:Person) RETURN n.name, n.age ORDER BY n.age ASC, n.name DESC;
+
+# 5. 基础LIMIT和SKIP
+MATCH (n:Person) RETURN n.name LIMIT 10;
+MATCH (n:Person) RETURN n.name SKIP 5;
+MATCH (n:Person) RETURN n.name SKIP 5 LIMIT 10;
+MATCH (n:Person) RETURN n.name ORDER BY n.age DESC LIMIT 5;
+
+# 6. 基础聚合查询
+MATCH (n:Person) RETURN count(n);
+MATCH (n:Person) RETURN count(n) AS personCount;
+MATCH (n:Person) RETURN n.department, count(n) AS deptCount;
+MATCH (n:Person) RETURN n.department, count(n) AS deptCount GROUP BY n.department;
+MATCH (n:Person) RETURN n.department, count(n) AS deptCount GROUP BY n.department ORDER BY deptCount DESC;
+
+# 7. 基础CREATE操作
+CREATE (n:Person {name: 'Alice', age: 30});
+CREATE (n:Person {name: 'Bob', age: 25, city: 'New York'});
+CREATE (a:Person {name: 'Alice'})-[:KNOWS {since: 2020}]->(b:Person {name: 'Bob'});
+
+# 8. 基础DELETE操作
+MATCH (n:Person {name: 'Alice'}) DELETE n;
+MATCH (n:Person {name: 'Bob'}) DETACH DELETE n;
+MATCH (n:Person) WHERE n.age < 18 DELETE n;
+
+# 9. 基础SET操作
+MATCH (n:Person {name: 'Alice'}) SET n.age = 31;
+MATCH (n:Person {name: 'Alice'}) SET n.age = 31, n.city = 'Boston';
+MATCH (n:Person {name: 'Alice'}) SET n += {age: 31, city: 'Boston'};
+
+# 10. 基础REMOVE操作
+MATCH (n:Person {name: 'Alice'}) REMOVE n.age;
+MATCH (n:Person {name: 'Alice'}) REMOVE n.age, n.city;
+
+# 11. 基础MERGE操作
+MERGE (n:Person {name: 'Alice'});
+MERGE (n:Person {name: 'Alice'}) ON CREATE SET n.age = 30;
+MERGE (n:Person {name: 'Alice'}) ON CREATE SET n.age = 30 ON MATCH SET n.lastSeen = datetime();
+
+# 12. 基础UNION查询
+MATCH (n:Person) WHERE n.age < 30 RETURN n.name AS name
+UNION
+MATCH (n:Person) WHERE n.age >= 30 RETURN n.name AS name;
+
+# 13. 基础WITH子句
+MATCH (n:Person) WITH n WHERE n.age > 25 RETURN n.name;
+MATCH (n:Person) WITH n ORDER BY n.age DESC LIMIT 5 RETURN n.name;
+MATCH (n:Person) WITH n, count(n) AS total RETURN n.name, total;
+
+# 14. 基础CALL子句
+CALL db.labels() YIELD label RETURN label;
+CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType;
+CALL db.schema() YIELD nodes, relationships RETURN nodes, relationships;
+
+# 15. 基础索引和约束
+CREATE INDEX person_name_index FOR (n:Person) ON (n.name);
+CREATE CONSTRAINT person_name_unique FOR (n:Person) REQUIRE n.name IS UNIQUE;
+DROP INDEX person_name_index;
+DROP CONSTRAINT person_name_unique;
+
+# 16. 基础事务
+BEGIN;
+MATCH (n:Person) WHERE n.name = 'Alice' SET n.age = 31;
+COMMIT;
+
+BEGIN;
+MATCH (n:Person) WHERE n.name = 'Bob' DELETE n;
+ROLLBACK;
+
+# 17. 基础参数化查询
+MATCH (n:Person) WHERE n.name = $name RETURN n;
+MATCH (n:Person) WHERE n.age > $minAge RETURN n;
+MATCH (n:Person) WHERE n.name = $name AND n.age > $minAge RETURN n;
+
+# 18. 基础字符串操作
+MATCH (n:Person) WHERE n.name STARTS WITH 'A' RETURN n.name;
+MATCH (n:Person) WHERE n.name ENDS WITH 'son' RETURN n.name;
+MATCH (n:Person) WHERE n.name CONTAINS 'li' RETURN n.name;
+MATCH (n:Person) WHERE n.name =~ 'A.*' RETURN n.name;
+
+# 19. 基础数值操作
+MATCH (n:Person) WHERE n.age + 5 > 30 RETURN n.name;
+MATCH (n:Person) WHERE n.age * 2 < 100 RETURN n.name;
+MATCH (n:Person) WHERE n.age / 2 > 10 RETURN n.name;
+MATCH (n:Person) WHERE n.age % 2 = 0 RETURN n.name;
+
+# 20. 基础列表操作
+MATCH (n:Person) WHERE 'Alice' IN n.friends RETURN n.name;
+MATCH (n:Person) WHERE size(n.friends) > 5 RETURN n.name;
+MATCH (n:Person) WHERE n.friends[0] = 'Alice' RETURN n.name;
+MATCH (n:Person) RETURN n.friends[0..2] AS firstTwoFriends;
+
+# 21. 基础日期时间操作
+MATCH (n:Person) WHERE n.birthDate < date('1990-01-01') RETURN n.name;
+MATCH (n:Person) WHERE n.createdAt > datetime('2020-01-01T00:00:00') RETURN n.name;
+MATCH (n:Person) RETURN n.name, n.birthDate.year AS birthYear;
+
+# 22. 基础CASE表达式
+MATCH (n:Person) RETURN n.name, 
+CASE 
+  WHEN n.age < 18 THEN 'Minor'
+  WHEN n.age < 65 THEN 'Adult'
+  ELSE 'Senior'
+END AS ageGroup;
+
+# 23. 基础COALESCE和NULL处理
+MATCH (n:Person) RETURN n.name, COALESCE(n.middleName, '') AS middleName;
+MATCH (n:Person) WHERE n.nickname IS NULL RETURN n.name;
+MATCH (n:Person) WHERE n.nickname IS NOT NULL RETURN n.name;
+
+# 24. 基础EXISTS子查询
+MATCH (n:Person) WHERE EXISTS { MATCH (n)-[:KNOWS]->(m:Person) WHERE m.age > 30 } RETURN n.name;
+MATCH (n:Person) WHERE NOT EXISTS { MATCH (n)-[:KNOWS]->(m:Person) } RETURN n.name;
+
+# 25. 基础OPTIONAL MATCH
+MATCH (n:Person) OPTIONAL MATCH (n)-[:KNOWS]->(m:Person) RETURN n.name, m.name;
+MATCH (n:Person) OPTIONAL MATCH (n)-[:WORKS_AT]->(c:Company) RETURN n.name, c.name;
+
+# 26. 基础路径查询
+MATCH path = (a:Person)-[:KNOWS*1..3]->(b:Person) RETURN path;
+MATCH path = (a:Person)-[:KNOWS*]->(b:Person) RETURN path;
+MATCH path = shortestPath((a:Person)-[:KNOWS*]->(b:Person)) RETURN path;
+
+# 27. 基础变量和别名
+MATCH (person:Person) RETURN person.name AS name;
+MATCH (p:Person)-[r:KNOWS]->(friend:Person) RETURN p.name AS person, friend.name AS friend;
+MATCH (n:Person) WITH n AS person WHERE person.age > 25 RETURN person.name;
+
+# 28. 基础函数调用
+MATCH (n:Person) RETURN n.name, length(n.name) AS nameLength;
+MATCH (n:Person) RETURN n.name, toUpper(n.name) AS upperName;
+MATCH (n:Person) RETURN n.name, toLower(n.name) AS lowerName;
+
+# 29. 基础集合操作
+MATCH (n:Person) RETURN collect(n.name) AS allNames;
+MATCH (n:Person) RETURN collect(DISTINCT n.department) AS departments;
+MATCH (n:Person) RETURN n.department, collect(n.name) AS namesInDept;
+
+# 30. 基础排序和分组
+MATCH (n:Person) RETURN n.department, count(n) AS deptSize ORDER BY deptSize DESC;
+MATCH (n:Person) RETURN n.department, collect(n.name) AS names ORDER BY size(names) DESC;
+MATCH (n:Person) RETURN n.department, avg(n.age) AS avgAge ORDER BY avgAge DESC;

@@ -1,0 +1,19 @@
+[package]
+name = "benchmark_tests"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jinzhu.Zhang <freeheart1977@example.com>"]
+description = "RL基准测试套件"
+license = "MIT"
+
+[[bin]]
+name = "benchmark_tests"
+path = "src/main.rs"
+
+[dependencies]
+rl = { path = "../.." }
+rayon = "1.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+

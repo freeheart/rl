@@ -1,0 +1,1 @@
+petgraph::graph::EdgeReference<'_, knowledge_graph::KnowledgeEdge>

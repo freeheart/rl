@@ -1,0 +1,199 @@
+# 多语言CYPHER测试文件
+# 包含中文、法文、藏文、韩文、日文、俄文、德文等多种语言的CYPHER语句
+
+# 1. 中文测试
+MATCH (n:人员) WHERE n.年龄 > 25 RETURN n.姓名;
+MATCH (n:人员) WHERE n.城市 = '北京' RETURN n.姓名, n.年龄;
+MATCH (n:产品) WHERE n.价格 > 1000 AND n.类别 = '电子产品' RETURN n.名称, n.价格;
+MATCH (n:公司) WHERE n.行业 = '科技' RETURN n.名称, n.员工数量;
+MATCH (n:学生) WHERE n.专业 = '计算机科学' AND n.年级 > 2 RETURN n.姓名, n.成绩;
+
+# 2. 法文测试
+MATCH (n:Personne) WHERE n.âge > 25 RETURN n.nom;
+MATCH (n:Personne) WHERE n.ville = 'Paris' RETURN n.nom, n.âge;
+MATCH (n:Produit) WHERE n.prix > 1000 AND n.catégorie = 'Électronique' RETURN n.nom, n.prix;
+MATCH (n:Entreprise) WHERE n.secteur = 'Technologie' RETURN n.nom, n.employés;
+MATCH (n:Étudiant) WHERE n.spécialité = 'Informatique' AND n.niveau > 2 RETURN n.nom, n.notes;
+
+# 3. 德文测试
+MATCH (n:Person) WHERE n.Alter > 25 RETURN n.Name;
+MATCH (n:Person) WHERE n.Stadt = 'Berlin' RETURN n.Name, n.Alter;
+MATCH (n:Produkt) WHERE n.Preis > 1000 AND n.Kategorie = 'Elektronik' RETURN n.Name, n.Preis;
+MATCH (n:Unternehmen) WHERE n.Branche = 'Technologie' RETURN n.Name, n.Mitarbeiter;
+MATCH (n:Student) WHERE n.Fach = 'Informatik' AND n.Jahrgang > 2 RETURN n.Name, n.Noten;
+
+# 4. 俄文测试
+MATCH (n:Человек) WHERE n.возраст > 25 RETURN n.имя;
+MATCH (n:Человек) WHERE n.город = 'Москва' RETURN n.имя, n.возраст;
+MATCH (n:Продукт) WHERE n.цена > 1000 AND n.категория = 'Электроника' RETURN n.название, n.цена;
+MATCH (n:Компания) WHERE n.отрасль = 'Технологии' RETURN n.название, n.сотрудники;
+MATCH (n:Студент) WHERE n.специальность = 'Информатика' AND n.курс > 2 RETURN n.имя, n.оценки;
+
+# 5. 日文测试
+MATCH (n:人) WHERE n.年齢 > 25 RETURN n.名前;
+MATCH (n:人) WHERE n.都市 = '東京' RETURN n.名前, n.年齢;
+MATCH (n:製品) WHERE n.価格 > 1000 AND n.カテゴリ = '電子機器' RETURN n.名前, n.価格;
+MATCH (n:会社) WHERE n.業界 = '技術' RETURN n.名前, n.従業員数;
+MATCH (n:学生) WHERE n.専攻 = '情報学' AND n.学年 > 2 RETURN n.名前, n.成績;
+
+# 6. 韩文测试
+MATCH (n:사람) WHERE n.나이 > 25 RETURN n.이름;
+MATCH (n:사람) WHERE n.도시 = '서울' RETURN n.이름, n.나이;
+MATCH (n:제품) WHERE n.가격 > 1000 AND n.카테고리 = '전자제품' RETURN n.이름, n.가격;
+MATCH (n:회사) WHERE n.업계 = '기술' RETURN n.이름, n.직원수;
+MATCH (n:학생) WHERE n.전공 = '컴퓨터과학' AND n.학년 > 2 RETURN n.이름, n.성적;
+
+# 7. 阿拉伯文测试
+MATCH (n:شخص) WHERE n.عمر > 25 RETURN n.اسم;
+MATCH (n:شخص) WHERE n.مدينة = 'القاهرة' RETURN n.اسم, n.عمر;
+MATCH (n:منتج) WHERE n.سعر > 1000 AND n.فئة = 'إلكترونيات' RETURN n.اسم, n.سعر;
+MATCH (n:شركة) WHERE n.قطاع = 'تكنولوجيا' RETURN n.اسم, n.موظفين;
+MATCH (n:طالب) WHERE n.تخصص = 'علوم_الحاسوب' AND n.سنة > 2 RETURN n.اسم, n.درجات;
+
+# 8. 藏文测试
+MATCH (n:མི) WHERE n.ལོ་ཚོད > 25 RETURN n.མིང;
+MATCH (n:མི) WHERE n.གྲོང་ཁྱེར = 'ལྷ་ས' RETURN n.མིང, n.ལོ་ཚོད;
+MATCH (n:ཕྱི་ཟ) WHERE n.ཐོན་ཚད > 1000 AND n.དབྱེ་བ = 'གློག་ཀླད' RETURN n.མིང, n.ཐོན་ཚད;
+MATCH (n:ཁྱིམ་ཚང) WHERE n.ལས་ཁུངས = 'ཅིག་ཤོས' RETURN n.མིང, n.ལས་བྱེད་པ;
+MATCH (n:སློབ་ཕྲུག) WHERE n.ཁྱད་ཆོས = 'གློག་ཀླད་ཚན་པ' AND n.སློབ་ལོ > 2 RETURN n.མིང, n.དཔྱད་ཐོ;
+
+# 9. 泰文测试
+MATCH (n:บุคคล) WHERE n.อายุ > 25 RETURN n.ชื่อ;
+MATCH (n:บุคคล) WHERE n.เมือง = 'กรุงเทพ' RETURN n.ชื่อ, n.อายุ;
+MATCH (n:ผลิตภัณฑ์) WHERE n.ราคา > 1000 AND n.หมวดหมู่ = 'อิเล็กทรอนิกส์' RETURN n.ชื่อ, n.ราคา;
+MATCH (n:บริษัท) WHERE n.อุตสาหกรรม = 'เทคโนโลยี' RETURN n.ชื่อ, n.พนักงาน;
+MATCH (n:นักเรียน) WHERE n.สาขา = 'วิทยาการคอมพิวเตอร์' AND n.ชั้นปี > 2 RETURN n.ชื่อ, n.คะแนน;
+
+# 10. 印地文测试
+MATCH (n:व्यक्ति) WHERE n.आयु > 25 RETURN n.नाम;
+MATCH (n:व्यक्ति) WHERE n.शहर = 'दिल्ली' RETURN n.नाम, n.आयु;
+MATCH (n:उत्पाद) WHERE n.मूल्य > 1000 AND n.श्रेणी = 'इलेक्ट्रॉनिक्स' RETURN n.नाम, n.मूल्य;
+MATCH (n:कंपनी) WHERE n.उद्योग = 'प्रौद्योगिकी' RETURN n.नाम, n.कर्मचारी;
+MATCH (n:छात्र) WHERE n.विशेषज्ञता = 'कंप्यूटर_विज्ञान' AND n.वर्ष > 2 RETURN n.नाम, n.अंक;
+
+# 11. 希伯来文测试
+MATCH (n:אדם) WHERE n.גיל > 25 RETURN n.שם;
+MATCH (n:אדם) WHERE n.עיר = 'תל_אביב' RETURN n.שם, n.גיל;
+MATCH (n:מוצר) WHERE n.מחיר > 1000 AND n.קטגוריה = 'אלקטרוניקה' RETURN n.שם, n.מחיר;
+MATCH (n:חברה) WHERE n.תחום = 'טכנולוגיה' RETURN n.שם, n.עובדים;
+MATCH (n:סטודנט) WHERE n.התמחות = 'מדעי_המחשב' AND n.שנה > 2 RETURN n.שם, n.ציונים;
+
+# 12. 希腊文测试
+MATCH (n:άτομο) WHERE n.ηλικία > 25 RETURN n.όνομα;
+MATCH (n:άτομο) WHERE n.πόλη = 'Αθήνα' RETURN n.όνομα, n.ηλικία;
+MATCH (n:προϊόν) WHERE n.τιμή > 1000 AND n.κατηγορία = 'Ηλεκτρονικά' RETURN n.όνομα, n.τιμή;
+MATCH (n:εταιρεία) WHERE n.κλάδος = 'Τεχνολογία' RETURN n.όνομα, n.υπάλληλοι;
+MATCH (n:φοιτητής) WHERE n.ειδικότητα = 'Επιστήμη_Υπολογιστών' AND n.έτος > 2 RETURN n.όνομα, n.βαθμοί;
+
+# 13. 中文繁体测试
+MATCH (n:人員) WHERE n.年齡 > 25 RETURN n.姓名;
+MATCH (n:人員) WHERE n.城市 = '台北' RETURN n.姓名, n.年齡;
+MATCH (n:產品) WHERE n.價格 > 1000 AND n.類別 = '電子產品' RETURN n.名稱, n.價格;
+MATCH (n:公司) WHERE n.行業 = '科技' RETURN n.名稱, n.員工數量;
+MATCH (n:學生) WHERE n.專業 = '電腦科學' AND n.年級 > 2 RETURN n.姓名, n.成績;
+
+# 14. 混合语言测试
+MATCH (n:人员) WHERE n.age > 25 RETURN n.姓名;
+MATCH (n:Person) WHERE n.年龄 > 25 RETURN n.name;
+MATCH (n:人) WHERE n.âge > 25 RETURN n.名前;
+MATCH (n:사람) WHERE n.Alter > 25 RETURN n.이름;
+MATCH (n:Человек) WHERE n.年齢 > 25 RETURN n.имя;
+
+# 15. 特殊字符测试
+MATCH (n:测试) WHERE n.属性 = '特殊字符：!@#$%^&*()' RETURN n.名称;
+MATCH (n:тест) WHERE n.свойство = 'специальные_символы' RETURN n.имя;
+MATCH (n:テスト) WHERE n.プロパティ = '特殊文字' RETURN n.名前;
+MATCH (n:테스트) WHERE n.속성 = '특수문자' RETURN n.이름;
+
+# 16. Unicode测试
+MATCH (n:Unicode测试) WHERE n.属性 = 'Unicode字符：αβγδε' RETURN n.名称;
+MATCH (n:Unicode_Test) WHERE n.属性 = 'Unicode字符：αβγδε' RETURN n.名称;
+MATCH (n:Unicode_Test) WHERE n.属性 = 'Unicode字符：🚀🌟💫' RETURN n.名称;
+MATCH (n:Unicode_Test) WHERE n.属性 = 'Unicode字符：①②③④⑤' RETURN n.名称;
+
+# 17. 表情符号测试
+MATCH (n:表情符号) WHERE n.类型 = '😀😃😄😁' RETURN n.名称;
+MATCH (n:Emoji) WHERE n.类型 = '🚀🌟💫⭐' RETURN n.名称;
+MATCH (n:絵文字) WHERE n.タイプ = '🎉🎊🎈🎁' RETURN n.名前;
+MATCH (n:이모지) WHERE n.타입 = '🔥💯👍👏' RETURN n.이름;
+
+# 18. 数学符号测试
+MATCH (n:数学) WHERE n.公式 = 'α + β = γ' RETURN n.名称;
+MATCH (n:Math) WHERE n.公式 = '∑(x²) = ∫f(x)dx' RETURN n.名称;
+MATCH (n:数学) WHERE n.公式 = '∂f/∂x = lim(h→0)[f(x+h)-f(x)]/h' RETURN n.名称;
+MATCH (n:Math) WHERE n.公式 = '∞ > ∀x ∈ ℝ' RETURN n.名称;
+
+# 19. 货币符号测试
+MATCH (n:货币) WHERE n.符号 = '¥' RETURN n.名称;
+MATCH (n:Currency) WHERE n.符号 = '€' RETURN n.名称;
+MATCH (n:通貨) WHERE n.符号 = '£' RETURN n.名称;
+MATCH (n:통화) WHERE n.符号 = '₩' RETURN n.名称;
+
+# 20. 复杂多语言查询
+MATCH (n:人员)-[:认识]->(m:Person) WHERE n.年龄 > m.age RETURN n.姓名, m.name;
+MATCH (n:Person)-[:KNOWS]->(m:人) WHERE n.age > m.年齢 RETURN n.name, m.名前;
+MATCH (n:人)-[:KNOWS]->(m:사람) WHERE n.年齢 > m.나이 RETURN n.名前, m.이름;
+MATCH (n:사람)-[:KNOWS]->(m:Человек) WHERE n.나이 > m.возраст RETURN n.이름, m.имя;
+
+# 21. 多语言LET表达式
+MATCH (p:产品) LET 价格 = p.price LET 折扣 = 价格 * 0.1 RETURN p.名称, 折扣;
+MATCH (p:Produit) LET prix = p.price LET remise = prix * 0.1 RETURN p.nom, remise;
+MATCH (p:Produkt) LET preis = p.price LET rabatt = preis * 0.1 RETURN p.name, rabatt;
+MATCH (p:Продукт) LET цена = p.price LET скидка = цена * 0.1 RETURN p.название, скидка;
+
+# 22. 多语言CASE表达式
+MATCH (n:人员) RETURN n.姓名, CASE WHEN n.年龄 < 18 THEN '未成年' WHEN n.年龄 < 65 THEN '成年人' ELSE '老年人' END AS 年龄组;
+MATCH (n:Personne) RETURN n.nom, CASE WHEN n.âge < 18 THEN 'Mineur' WHEN n.âge < 65 THEN 'Adulte' ELSE 'Senior' END AS groupe_âge;
+MATCH (n:Person) RETURN n.Name, CASE WHEN n.Alter < 18 THEN 'Minderjährig' WHEN n.Alter < 65 THEN 'Erwachsen' ELSE 'Senior' END AS Altersgruppe;
+MATCH (n:Человек) RETURN n.имя, CASE WHEN n.возраст < 18 THEN 'Несовершеннолетний' WHEN n.возраст < 65 THEN 'Взрослый' ELSE 'Пожилой' END AS возрастная_группа;
+
+# 23. 多语言聚合查询
+MATCH (n:人员) RETURN n.部门, count(n) AS 部门人数, avg(n.年龄) AS 平均年龄;
+MATCH (n:Personne) RETURN n.département, count(n) AS nombre_département, avg(n.âge) AS âge_moyen;
+MATCH (n:Person) RETURN n.Abteilung, count(n) AS Abteilungsgröße, avg(n.Alter) AS Durchschnittsalter;
+MATCH (n:Человек) RETURN n.отдел, count(n) AS размер_отдела, avg(n.возраст) AS средний_возраст;
+
+# 24. 多语言排序查询
+MATCH (n:人员) RETURN n.姓名, n.年龄 ORDER BY n.年龄 DESC;
+MATCH (n:Personne) RETURN n.nom, n.âge ORDER BY n.âge DESC;
+MATCH (n:Person) RETURN n.Name, n.Alter ORDER BY n.Alter DESC;
+MATCH (n:Человек) RETURN n.имя, n.возраст ORDER BY n.возраст DESC;
+
+# 25. 多语言限制查询
+MATCH (n:人员) RETURN n.姓名 LIMIT 10;
+MATCH (n:Personne) RETURN n.nom LIMIT 10;
+MATCH (n:Person) RETURN n.Name LIMIT 10;
+MATCH (n:Человек) RETURN n.имя LIMIT 10;
+
+# 26. 多语言分组查询
+MATCH (n:人员) RETURN n.部门, count(n) AS 人数 GROUP BY n.部门;
+MATCH (n:Personne) RETURN n.département, count(n) AS nombre GROUP BY n.département;
+MATCH (n:Person) RETURN n.Abteilung, count(n) AS Anzahl GROUP BY n.Abteilung;
+MATCH (n:Человек) RETURN n.отдел, count(n) AS количество GROUP BY n.отдел;
+
+# 27. 多语言HAVING查询
+MATCH (n:人员) RETURN n.部门, count(n) AS 人数 GROUP BY n.部门 HAVING count(n) > 5;
+MATCH (n:Personne) RETURN n.département, count(n) AS nombre GROUP BY n.département HAVING count(n) > 5;
+MATCH (n:Person) RETURN n.Abteilung, count(n) AS Anzahl GROUP BY n.Abteilung HAVING count(n) > 5;
+MATCH (n:Человек) RETURN n.отдел, count(n) AS количество GROUP BY n.отдел HAVING count(n) > 5;
+
+# 28. 多语言UNION查询
+MATCH (n:人员) WHERE n.年龄 < 30 RETURN n.姓名 AS 姓名
+UNION
+MATCH (n:Personne) WHERE n.âge < 30 RETURN n.nom AS 姓名
+UNION
+MATCH (n:Person) WHERE n.Alter < 30 RETURN n.Name AS 姓名
+UNION
+MATCH (n:Человек) WHERE n.возраст < 30 RETURN n.имя AS 姓名;
+
+# 29. 多语言WITH查询
+MATCH (n:人员) WITH n WHERE n.年龄 > 25 RETURN n.姓名;
+MATCH (n:Personne) WITH n WHERE n.âge > 25 RETURN n.nom;
+MATCH (n:Person) WITH n WHERE n.Alter > 25 RETURN n.Name;
+MATCH (n:Человек) WITH n WHERE n.возраст > 25 RETURN n.имя;
+
+# 30. 多语言CALL查询
+CALL db.labels() YIELD label WHERE label CONTAINS '人员' RETURN label;
+CALL db.labels() YIELD label WHERE label CONTAINS 'Personne' RETURN label;
+CALL db.labels() YIELD label WHERE label CONTAINS 'Person' RETURN label;
+CALL db.labels() YIELD label WHERE label CONTAINS 'Человек' RETURN label;
