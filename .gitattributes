@@ -1,0 +1,17 @@
+# 设置GitHub语言检测
+*.rs linguist-language=Rust
+*.toml linguist-language=Rust
+*.lock linguist-language=Rust
+
+# 排除HTML文件（如果存在）
+*.html linguist-detectable=false
+*.htm linguist-detectable=false
+
+# 排除文档文件
+*.md linguist-documentation
+*.txt linguist-documentation
+*.rst linguist-documentation
+
+# 排除测试文件
+examples/* linguist-documentation
+target/* linguist-documentation
